@@ -1,0 +1,27 @@
+[project]
+name = "prompt-distil"
+version = "0.1.0"
+description = "Intent Distiller CLI - Turn noisy transcripts into clean prompts for coding agents"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai",
+    "pydantic>=2",
+    "typer>=0.12",
+    "python-dotenv",
+    "rich",
+    "snowballstemmer>=3.0.1",
+]
+
+[project.scripts]
+prompt-distil = "prompt_distil.main:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+    "pytest-asyncio",
+]
