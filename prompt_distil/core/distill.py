@@ -10,6 +10,7 @@ import json
 from typing import Dict, Literal, Optional
 
 from .config import config, get_client
+from .progress import reporter
 from .prompt import PromptRenderer
 from .reconcile import reconcile_text
 from .surface import ProjectSurface, ensure_cache, load_cache
@@ -70,19 +71,23 @@ class TranscriptDistiller:
             DistillationError: If distillation fails
         """
         # Protect code identifiers
+        reporter.step("Protecting identifiers…")
         from .speech import protect_code_identifiers
 
         protected_transcript = protect_code_identifiers(transcript)
 
         # Reconcile text with known symbols from project cache (pass asr_language and lex_mode)
+        reporter.step("Reconciling symbols…")
         reconciled_transcript, reconciled_identifiers, unknown_mentions, lexicon_hits, unresolved_terms = reconcile_text(
             protected_transcript, self.project_root, asr_language, lex_mode
         )
 
         # Load cache for compact hints
+        reporter.step("Loading symbol cache…")
         cache = load_cache(self.project_root) or ensure_cache(self.project_root, save=False)
 
         # Prepare system prompt with distillation instructions and symbol hints
+        reporter.step("Preparing prompts…")
         compact_hints = self._prepare_compact_hints(cache, surface_hints)
         system_prompt = self._create_system_prompt(compact_hints, target_language)
 
@@ -90,6 +95,7 @@ class TranscriptDistiller:
         user_prompt = self._create_user_prompt(reconciled_transcript)
 
         try:
+            reporter.step_with_context("Calling the model", "for distillation")
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
@@ -164,6 +170,7 @@ class TranscriptDistiller:
         ir = self.build_ir_lite(transcript, surface_hints, target_language, asr_language, lex_mode)
 
         # Render all prompts
+        reporter.step("Rendering prompts…")
         prompts = self.render_prompts(ir)
 
         # Create session passport

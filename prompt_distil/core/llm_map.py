@@ -65,6 +65,9 @@ def llm_map_symbols(transcript: str, candidate_symbols: List[str], max_candidate
     user_prompt = _create_llm_user_prompt(transcript)
 
     try:
+        from .progress import reporter
+
+        reporter.step_with_context("Calling the model", "for reconciliation")
         client = get_client()
         response = client.chat.completions.create(
             model=config.distil_model,

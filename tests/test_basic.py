@@ -750,5 +750,119 @@ class TestMultilingualLexicon:
         assert get_effective_language("auto", "Delete task") == "en"
 
 
+class TestProgressReporter:
+    """Test the progress reporter functionality."""
+
+    def test_reporter_initialization(self):
+        """Test ProgressReporter initialization."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Initially not active
+        assert not reporter.is_active()
+
+        # Initialize with console
+        status = reporter.initialize(console, "Test message")
+        assert reporter.is_active()
+        assert status is not None
+
+    def test_reporter_step_updates(self):
+        """Test progress step updates."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Step without initialization should not fail
+        reporter.step("Should not crash")
+
+        # Initialize and test step updates
+        status = reporter.initialize(console, "Initial")
+        reporter.step("Step 1")
+        reporter.step("Step 2")
+        assert reporter.is_active()
+
+        # Check completed steps tracking
+        completed = reporter.get_completed_steps()
+        assert "Initial" in completed
+        assert "Step 1" in completed
+        assert len(completed) == 2
+
+    def test_reporter_reset(self):
+        """Test reporter reset functionality."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Initialize
+        reporter.initialize(console, "Test")
+        assert reporter.is_active()
+
+        # Reset
+        reporter.reset()
+        assert not reporter.is_active()
+
+    def test_global_reporter_instance(self):
+        """Test that global reporter instance exists."""
+        from prompt_distil.core.progress import reporter
+
+        assert reporter is not None
+        assert hasattr(reporter, "step")
+        assert hasattr(reporter, "initialize")
+        assert hasattr(reporter, "is_active")
+        assert hasattr(reporter, "complete_step")
+        assert hasattr(reporter, "step_with_context")
+
+    def test_reporter_step_completion(self):
+        """Test step completion functionality."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Initialize reporter
+        status = reporter.initialize(console, "Test step")
+
+        # Complete current step
+        reporter.complete_step()
+        completed = reporter.get_completed_steps()
+        assert "Test step" in completed
+
+        # Complete with custom message
+        reporter.step("New step")
+        reporter.complete_step("Custom completion")
+        completed = reporter.get_completed_steps()
+        assert "Custom completion" in completed
+
+    def test_reporter_step_with_context(self):
+        """Test step updates with context information."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Initialize and test context steps
+        status = reporter.initialize(console, "Initial")
+        reporter.step_with_context("Calling the model", "for reconciliation")
+        reporter.step_with_context("Calling the model", "for distillation")
+
+        completed = reporter.get_completed_steps()
+        assert "Initial" in completed
+        assert "Calling the model for reconciliation" in completed
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

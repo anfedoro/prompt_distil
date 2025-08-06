@@ -19,6 +19,7 @@ from rich.table import Table
 
 from .core.config import ConfigError, validate_config
 from .core.distill import distill_transcript
+from .core.progress import reporter
 from .core.speech import SpeechError, SpeechProcessor
 from .core.surface import ProjectSurface, SurfaceError, ensure_cache, load_cache
 
@@ -49,8 +50,9 @@ def distill(
         prompt-distil distill --project-root /path/to/app --text "update user model" --profile std
     """
     try:
-        # Validate input options
-        with console.status("[dim]Validating input…[/dim]"):
+        # Initialize progress reporter
+        with reporter.initialize(console, "Validating input…"):
+            # Validate input options
             if text and file:
                 console.print("[bold red]Error:[/bold red] Cannot specify both --text and --file options")
                 sys.exit(1)
@@ -83,32 +85,18 @@ def distill(
             # Validate configuration
             validate_config()
 
-        # Apply code identifier protection
-        with console.status("[dim]Protecting identifiers…[/dim]"):
-            from .core.speech import protect_code_identifiers
-
-            protected_text = protect_code_identifiers(text)
-
-        # Load or ensure cache for reconciliation
-        with console.status("[dim]Building/Using cache…[/dim]"):
+            # Load or ensure cache for reconciliation
+            reporter.step("Building/Using cache…")
             if not load_cache(project_root):
                 ensure_cache(project_root, save=False)
 
-        # Reconciliation step
-        with console.status("[dim]Reconciling…[/dim]"):
-            pass  # Reconciliation happens inside distill_transcript
+            # Process transcript (always use English for text input)
+            result = distill_transcript(text, profile, project_root, "en", "auto", lex_mode)
 
-        # Process transcript (always use English for text input)
-        with console.status("[dim]Calling the model…[/dim]"):
-            result = distill_transcript(protected_text, profile, project_root, "en", "auto", lex_mode)
-
-        # Render results
-        with console.status("[dim]Rendering…[/dim]"):
-            pass  # Rendering happens inside distill_transcript
-
-        # Display results
-        with console.status("[dim]Printing results…[/dim]"):
+            # Display results
+            reporter.step("Printing results…")
             _display_distillation_result(result, profile, output_format)
+            reporter.complete_step()
 
     except ConfigError as e:
         console.print(f"[bold red]Configuration Error:[/bold red] {e}")
@@ -138,8 +126,9 @@ def from_audio(
         prompt-distil from-audio recording.wav --project-root /path/to/app --translate
     """
     try:
-        # Validate input
-        with console.status("[dim]Validating input…[/dim]"):
+        # Initialize progress reporter
+        with reporter.initialize(console, "Validating input…"):
+            # Validate input
             if lex_mode not in ["rules", "llm", "hybrid"]:
                 console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
                 sys.exit(1)
@@ -147,8 +136,8 @@ def from_audio(
             # Validate configuration
             validate_config()
 
-        # Check audio file
-        with console.status("[dim]Checking audio file…[/dim]"):
+            # Check audio file
+            reporter.step("Checking audio file…")
             audio_path = Path(path)
             if not audio_path.exists():
                 console.print(f"[bold red]Error:[/bold red] Audio file not found: {path}")
@@ -167,44 +156,31 @@ def from_audio(
             audio_info = speech_processor.get_audio_info(path)
             console.print(f"[dim]Processing: {audio_info['name']} ({audio_info['size_mb']} MB)[/dim]")
 
-        # Transcribe audio
-        with console.status("[dim]Transcribing audio…[/dim]"):
+            # Transcribe audio
             transcript_result = speech_processor.transcribe_audio(path)
 
-        transcript_text = transcript_result.text
-        console.print(f"[dim]Transcript ({len(transcript_text.split())} words, detected: {transcript_result.lang_hint}):[/dim]")
-        console.print(Panel(transcript_text[:200] + "..." if len(transcript_text) > 200 else transcript_text))
+            transcript_text = transcript_result.text
+            console.print(f"[dim]Transcript ({len(transcript_text.split())} words, detected: {transcript_result.lang_hint}):[/dim]")
+            console.print(Panel(transcript_text[:200] + "..." if len(transcript_text) > 200 else transcript_text))
 
-        # Load or ensure cache for reconciliation
-        with console.status("[dim]Building/Using cache…[/dim]"):
+            # Load or ensure cache for reconciliation
+            reporter.step("Building/Using cache…")
             if not load_cache(project_root):
                 ensure_cache(project_root, save=False)
 
-        # Determine target language
-        target_language = "en" if translate or final_lang == "en" else "auto"
+            # Determine target language
+            target_language = "en" if translate or final_lang == "en" else "auto"
 
-        # Protecting identifiers step
-        with console.status("[dim]Protecting identifiers…[/dim]"):
-            pass  # Protection happens inside distill_transcript
-
-        # Reconciliation step
-        with console.status("[dim]Reconciling…[/dim]"):
-            pass  # Reconciliation happens inside distill_transcript
-
-        # Distill transcript
-        with console.status("[dim]Calling the model…[/dim]"):
+            # Distill transcript
             result = distill_transcript(transcript_text, profile, project_root, target_language, transcript_result.lang_hint, lex_mode)
 
-        # Update session passport with ASR language info
-        result["session_passport"]["asr_language"] = transcript_result.lang_hint
+            # Update session passport with ASR language info
+            result["session_passport"]["asr_language"] = transcript_result.lang_hint
 
-        # Render results
-        with console.status("[dim]Rendering…[/dim]"):
-            pass  # Rendering happens inside distill_transcript
-
-        # Display results
-        with console.status("[dim]Printing results…[/dim]"):
+            # Display results
+            reporter.step("Printing results…")
             _display_distillation_result(result, profile, output_format)
+            reporter.complete_step()
 
     except (ConfigError, SpeechError) as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
@@ -238,7 +214,7 @@ def index(
             # Initialize surface for search
             surface = ProjectSurface(project_root)
             # Perform content search
-            with console.status(f"[dim]Searching for '{search}'…[/dim]"):
+            with reporter.initialize(console, f"Searching for '{search}'…"):
                 results = surface.search_project(search, max_results)
 
             if not results:
@@ -252,7 +228,7 @@ def index(
 
         else:
             # Build/update symbol cache
-            with console.status("[dim]Building/Using cache…[/dim]"):
+            with reporter.initialize(console, "Building/Using cache…"):
                 cache = ensure_cache(project_root, globs=patterns, force=force, save=save)
 
             # Display cache statistics

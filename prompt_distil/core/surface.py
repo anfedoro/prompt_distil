@@ -16,6 +16,8 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from .progress import reporter
+
 
 class SurfaceError(Exception):
     """Raised when surface operations fail."""
@@ -293,6 +295,8 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
 
     root_path = Path(root).absolute()
 
+    reporter.step("Scanning project files…")
+
     # Initialize cache structure
     cache = {
         "version": 1,
@@ -315,6 +319,8 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
 
     # Sort by size to process smaller files first
     all_files.sort(key=lambda f: f.stat().st_size)
+
+    reporter.step("Extracting symbols from files…")
 
     for file_path in all_files:
         if files_processed >= max_files:
@@ -342,6 +348,8 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
         except Exception:
             # Skip files that can't be processed
             continue
+
+    reporter.step("Building symbol index…")
 
     # Build inverted index
     for symbol in cache["symbols"]:

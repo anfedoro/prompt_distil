@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 from .config import config, get_client
+from .progress import reporter
 from .types import Transcript
 
 
@@ -127,6 +128,7 @@ class SpeechProcessor:
             raise SpeechError(f"Audio file too large: {file_size / 1024 / 1024:.1f}MB (max: 25MB)")
 
         try:
+            reporter.step("Transcribing audio…")
             with open(audio_path, "rb") as audio_file:
                 # Always use transcription endpoint - never translation
                 # Let Whisper auto-detect the language
