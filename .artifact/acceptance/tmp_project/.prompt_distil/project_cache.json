@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "generated_at": "2025-08-06T13:35:09.268596",
+  "root": "/Users/anfedoro/repositories/prompt_distil/.artifact/acceptance/tmp_project",
+  "globs": [
+    "**/*.py"
+  ],
+  "files": [],
+  "symbols": [],
+  "inverted_index": {}
+}

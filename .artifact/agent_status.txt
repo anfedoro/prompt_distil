@@ -1,0 +1,6 @@
+ M prompt_distil/core/lexicon.py
+?? .artifact/agent_changes.tgz
+?? .artifact/agent_index.diff
+?? .artifact/agent_status.txt
+?? .artifact/agent_worktree.diff
+?? .artifact/untracked.txt

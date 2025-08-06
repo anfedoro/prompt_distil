@@ -1,0 +1,110 @@
+diff --git a/prompt_distil/core/lexicon.py b/prompt_distil/core/lexicon.py
+index d4a5fa3..269f255 100644
+--- a/prompt_distil/core/lexicon.py
++++ b/prompt_distil/core/lexicon.py
+@@ -153,67 +153,6 @@ def detect_lang_fallback(text: str) -> str:
+     return "en"
+ 
+ 
+-def detect_lexicon_language(text: str, project_root: Union[str, Path]) -> Tuple[str, Dict[str, int], str]:
+-    """
+-    Detect language based on lexicon hits with voting hardening.
+-
+-    Args:
+-        text: Text to analyze
+-        project_root: Project root for loading lexicons
+-
+-    Returns:
+-        Tuple of (detected_language, vote_counts, detection_reason)
+-    """
+-    from collections import Counter
+-
+-    # Initialize vote counter
+-    votes = Counter()
+-
+-    # Check each supported language
+-    for lang in ["ru", "es", "en"]:
+-        builtin_lex = load_builtin_lexicon(lang)
+-        project_lex = load_project_lexicon(project_root, lang)
+-        merged_lex = merge_lexicons(builtin_lex, project_lex)
+-
+-        if not merged_lex:
+-            continue
+-
+-        tokens = tokenize_normalize(text)
+-
+-        # Count lexicon hits, excluding neutral anchors
+-        for token in tokens:
+-            if token in merged_lex:
+-                # Check if any of the anchors are neutral
+-                anchors = merged_lex[token]
+-                if not any(anchor in NEUTRAL_ANCHORS for anchor in anchors):
+-                    votes[lang] += 1
+-
+-    # Convert to regular dict for JSON serialization
+-    vote_counts = dict(votes)
+-
+-    # Apply voting requirements:
+-    # - At least 2 distinct hits for the same lang
+-    # - Lead over 2nd place by >= 1
+-    if not votes:
+-        return "auto", vote_counts, "no_lexicon_hits"
+-
+-    # Get top two languages by votes
+-    most_common = votes.most_common(2)
+-    top_lang, top_votes = most_common[0]
+-
+-    # Check minimum vote requirement
+-    if top_votes < 2:
+-        return "auto", vote_counts, "insufficient_votes"
+-
+-    # Check lead requirement
+-    if len(most_common) > 1:
+-        second_lang, second_votes = most_common[1]
+-        if top_votes - second_votes < 1:
+-            return "auto", vote_counts, "insufficient_lead"
+-
+-    return top_lang, vote_counts, "lexicon"
+-
+-
+ def get_stemmer(lang: str):
+     """
+     Get a SnowballStemmer for the specified language.
+@@ -506,35 +445,9 @@ def generate_stemmed_aliases(phrase: str, lang: str) -> List[str]:
+     return unique_aliases
+ 
+ 
+-def get_effective_language(asr_language: str, text: str, project_root: Union[str, Path] = ".") -> Tuple[str, Dict]:
+-    """
+-    Determine the effective language for lexicon processing with metadata.
+-
+-    Args:
+-        asr_language: Language detected by ASR (may be "auto" or None)
+-        text: Text to analyze if ASR language is not available
+-        project_root: Project root for loading lexicons
+-
+-    Returns:
+-        Tuple of (language_code, detection_metadata)
+-    """
+-    if asr_language and asr_language != "auto":
+-        return asr_language, {"reason": "asr", "votes": {}}
+-
+-    # Try lexicon-based detection first
+-    lex_lang, votes, reason = detect_lexicon_language(text, project_root)
+-
+-    if lex_lang != "auto":
+-        return lex_lang, {"reason": reason, "votes": votes}
+-
+-    # Fall back to script-based detection
+-    fallback_lang = detect_lang_fallback(text)
+-    return fallback_lang, {"reason": "script", "votes": votes}
+-
+-
+-def get_effective_language_simple(asr_language: str, text: str) -> str:
++def get_effective_language(asr_language: str, text: str) -> str:
+     """
+-    Simple version for backward compatibility.
++    Determine the effective language for lexicon processing.
+ 
+     Args:
+         asr_language: Language detected by ASR (may be "auto" or None)

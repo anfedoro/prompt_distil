@@ -1,0 +1,145 @@
+{
+  "ir": {
+    "goal": "Rewrite the test `delete_task` for task deletion and add logging for login",
+    "scope_hints": [
+      "Testing related to task deletion",
+      "Logging related to login functionality"
+    ],
+    "must": [
+      "Rewrite the test named `delete_task`",
+      "Add logging for login events"
+    ],
+    "must_not": [],
+    "known_entities": [
+      {
+        "path": "test_tasks.py",
+        "symbol": "delete_task",
+        "confidence": 0.9
+      },
+      {
+        "path": "test_auth.py",
+        "symbol": "login_handler",
+        "confidence": 0.7
+      }
+    ],
+    "unknowns": [
+      "Exact logging mechanism or format for login logging"
+    ],
+    "acceptance": [
+      "The `delete_task` test is rewritten and functions correctly",
+      "Login events are logged appropriately"
+    ],
+    "assumptions": [
+      "`delete_task` is a test function related to task deletion",
+      "Login logging relates to the login process possibly handled by `login_handler`"
+    ],
+    "reconciled_identifiers": [
+      "delete_task"
+    ],
+    "unknown_identifier_mentions": [
+      "\u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c"
+    ],
+    "lexicon_hits": [
+      "\u0442\u0435\u0441\u0442",
+      "\u0443\u0434\u0430\u043b\u0435\u043d\u0438\u044f",
+      "\u0437\u0430\u0434\u0430\u0447\u0438",
+      "\u043b\u043e\u0433\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435",
+      "\u043b\u043e\u0433\u0438\u043d"
+    ],
+    "unresolved_terms": []
+  },
+  "prompts": {
+    "short": "## Goal\nRewrite the test `delete_task` for task deletion and add logging for login\n\n## 
+Context\n- Testing related to task deletion\n- Logging related to login functionality\n\n## Change 
+Request\n\u2713 Rewrite the test named `delete_task`\n\u2713 Add logging for login events\n\n## Related (if 
+any)\n- test_tasks.py \u2014 `delete_task`\n- test_auth.py \u2014 `login_handler`",
+    "std": "## Goal\nRewrite the test `delete_task` for task deletion and add logging for login\n\n## Context\n-
+Testing related to task deletion\n- Logging related to login functionality\n\n## Change 
+Request\n**Required:**\n- Rewrite the test named `delete_task`\n- Add logging for login events\n\n## 
+Constraints\n**Unclear requirements (handle carefully):**\n- Exact logging mechanism or format for login 
+logging\n\n## Acceptance Criteria\n- The `delete_task` test is rewritten and functions correctly\n- Login events
+are logged appropriately\n\n## Assumptions\n- `delete_task` is a test function related to task deletion\n- Login
+logging relates to the login process possibly handled by `login_handler`\n\n## Related (if any)\n- test_tasks.py
+\u2014 `delete_task`\n- test_auth.py \u2014 `login_handler`",
+    "standard": "## Goal\nRewrite the test `delete_task` for task deletion and add logging for login\n\n## 
+Context\n- Testing related to task deletion\n- Logging related to login functionality\n\n## Change 
+Request\n**Required:**\n- Rewrite the test named `delete_task`\n- Add logging for login events\n\n## 
+Constraints\n**Unclear requirements (handle carefully):**\n- Exact logging mechanism or format for login 
+logging\n\n## Acceptance Criteria\n- The `delete_task` test is rewritten and functions correctly\n- Login events
+are logged appropriately\n\n## Assumptions\n- `delete_task` is a test function related to task deletion\n- Login
+logging relates to the login process possibly handled by `login_handler`\n\n## Related (if any)\n- test_tasks.py
+\u2014 `delete_task`\n- test_auth.py \u2014 `login_handler`",
+    "verbose": "## Goal\nRewrite the test `delete_task` for task deletion and add logging for login\n\n**Project
+Context:**\n- Testing related to task deletion\n- Logging related to login functionality\n\n## Change 
+Request\n### Required Changes\n- Rewrite the test named `delete_task`\n- Add logging for login events\n\n## 
+Constraints\n### Unclear Requirements\nThe following items need clarification or careful handling:\n- Exact 
+logging mechanism or format for login logging\n\n### General Constraints\n- Maintain existing public APIs unless
+explicitly requested\n- Follow existing code patterns and conventions\n- Ensure backward compatibility where 
+possible\n\n## Acceptance Criteria\n### Functional Requirements\n- The `delete_task` test is rewritten and 
+functions correctly\n- Login events are logged appropriately\n\n### Quality Requirements\n- Code should be 
+well-tested\n- Documentation should be updated if needed\n- No regressions in existing functionality\n\n## 
+Assumptions\nThe following assumptions were made during analysis:\n- `delete_task` is a test function related to
+task deletion\n- Login logging relates to the login process possibly handled by `login_handler`\n\n## Out of 
+Scope\n- Performance optimizations not explicitly requested\n- Major architectural changes unless necessary\n- 
+Changes to external dependencies\n- UI/UX modifications unless specified\n\n## Deliverables\n- Modified source 
+code files\n- Updated or new tests as appropriate\n- Documentation updates if needed\n- Clear commit messages 
+explaining changes\n\n## Related (if any)\n- test_tasks.py \u2014 `delete_task` (confidence: 0.90)\n- 
+test_auth.py \u2014 `login_handler` (confidence: 0.70)"
+  },
+  "session_passport": {
+    "transcript_stats": {
+      "length": 64,
+      "words": 8,
+      "lines": 1
+    },
+    "processing_stats": {
+      "known_entities_found": 2,
+      "unknowns_identified": 1,
+      "assumptions_made": 2,
+      "requirements_extracted": 2,
+      "prohibitions_identified": 0
+    },
+    "context_info": {
+      "project_context_used": true,
+      "surface_hints_count": 4
+    },
+    "dropped_or_simplified": [
+      "1 unclear items flagged for review"
+    ],
+    "model_used": "gpt-4.1-mini",
+    "assumptions_made": [
+      "`delete_task` is a test function related to task deletion",
+      "Login logging relates to the login process possibly handled by `login_handler`"
+    ],
+    "preserved_identifiers": [
+      "delete_task",
+      "login_handler"
+    ],
+    "reconciled_identifiers": [
+      "delete_task"
+    ],
+    "unknown_identifier_mentions": [
+      "\u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c"
+    ],
+    "project_root": ".",
+    "asr_language": "auto",
+    "target_language": "en",
+    "lexicon_lang": "ru",
+    "lexicon_hits": [
+      "\u0442\u0435\u0441\u0442",
+      "\u0443\u0434\u0430\u043b\u0435\u043d\u0438\u044f",
+      "\u0437\u0430\u0434\u0430\u0447\u0438",
+      "\u043b\u043e\u0433\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435",
+      "\u043b\u043e\u0433\u0438\u043d"
+    ],
+    "lex_mode": "rules",
+    "stemmer_lang": "ru",
+    "unresolved_terms": [],
+    "lang_detect_meta": {
+      "reason": "lexicon",
+      "votes": {
+        "ru": 2
+      }
+    }
+  }
+}

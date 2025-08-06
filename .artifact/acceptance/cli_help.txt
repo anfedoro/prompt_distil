@@ -1,0 +1,19 @@
+                                                                                                                
+ Usage: prompt-distil [OPTIONS] COMMAND [ARGS]...                                                               
+                                                                                                                
+ Intent Distiller CLI - Turn noisy transcripts into clean prompts for coding agents                             
+                                                                                                                
+                                                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.                                      │
+│ --show-completion             Show completion for the current shell, to copy it or customize the             │
+│                               installation.                                                                  │
+│ --help                        Show this message and exit.                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ distill      Distill text transcript into structured prompts.                                                │
+│ from-audio   Process audio file with Whisper ASR then distill into prompts. ASR uses auto language           │
+│              detection. Final language is controlled by distiller.                                           │
+│ index        Build symbol cache and perform project indexing utilities.                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+

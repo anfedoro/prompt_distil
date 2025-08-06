@@ -248,25 +248,24 @@ class PromptRenderer:
 
         formatted = []
         for entity in entities:
-            # Only render if we have:
-            # 1. A valid file path (not directory, no placeholders)
-            # 2. Confidence >= 0.80
-            # 3. Known lineno if available
+            # Only render if we have a valid path (no placeholders)
+            # Show file-like paths (contain a dot in the last segment)
             if (
                 entity.path
                 and entity.path not in ["", "unknown", "****", "**", "*"]
                 and not entity.path.endswith("/")  # Not a directory
-                and "/" in entity.path
                 and "." in entity.path.split("/")[-1]  # Has file extension
-                and entity.confidence is not None
-                and entity.confidence >= 0.80
             ):
                 if entity.symbol:
-                    line = f"- {entity.path} — `{entity.symbol}` (confidence: {entity.confidence:.2f})"
+                    line = f"- {entity.path} — `{entity.symbol}`"
                 else:
-                    line = f"- {entity.path} (confidence: {entity.confidence:.2f})"
+                    line = f"- {entity.path}"
+
+                # Add confidence for detailed view
+                if detailed and entity.confidence is not None:
+                    line += f" (confidence: {entity.confidence:.2f})"
 
                 formatted.append(line)
-            # Skip entities that don't meet criteria - no placeholders in Related section
+            # Skip entities without valid paths - no placeholders in Related section
 
         return "\n".join(formatted)

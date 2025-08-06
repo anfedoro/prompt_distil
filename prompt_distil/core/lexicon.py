@@ -125,14 +125,69 @@ def merge_lexicons(builtin: Dict[str, List[str]], override: Dict[str, List[str]]
 
 def detect_lang_fallback(text: str) -> str:
     """
-    If ASR did not provide language, infer rough 'ru' if Cyrillic present, else 'en'.
+    DEPRECATED: Use get_effective_language instead.
+    """
+    lang = get_effective_language("auto", text)  # returns str
+    return lang
 
-    Args:
-        text: Text to analyze for language detection
+
+def list_available_lexicons(project_root: Union[str, Path] = ".") -> List[str]:
+    """Get list of available lexicon languages."""
+    available = []
+    for lang in ["en", "ru", "es"]:
+        builtin = load_builtin_lexicon(lang)
+        project = load_project_lexicon(project_root, lang) if project_root else {}
+        if builtin or project:
+            available.append(lang)
+    return available
+
+
+def detect_language(text: str, asr_language: str = "auto", available_lexicons: List[str] = None) -> Tuple[str, Dict]:
+    """
+    Detect language with voting and metadata.
 
     Returns:
-        Language code ('ru', 'en', etc.)
+        Tuple of (language_code, metadata_dict)
     """
+    if asr_language and asr_language != "auto":
+        return asr_language, {"reason": "asr", "votes": {}}
+
+    if not available_lexicons:
+        available_lexicons = ["en", "ru", "es"]
+
+    from collections import Counter
+
+    votes = Counter()
+
+    # Count lexicon hits for each language
+    tokens = tokenize_normalize(text)
+    for lang in available_lexicons:
+        builtin_lex = load_builtin_lexicon(lang)
+        if not builtin_lex:
+            continue
+
+        for token in tokens:
+            if token in builtin_lex:
+                # Check if any anchors are neutral
+                anchors = builtin_lex[token]
+                if not any(anchor in NEUTRAL_ANCHORS for anchor in anchors):
+                    votes[lang] += 1
+
+    vote_counts = dict(votes)
+
+    if not votes:
+        fallback = detect_lang_fallback_simple(text)
+        return fallback, {"reason": "script", "votes": vote_counts}
+
+    # Get top language
+    most_common = votes.most_common(1)
+    top_lang = most_common[0][0] if most_common else "en"
+
+    return top_lang, {"reason": "lexicon", "votes": vote_counts}
+
+
+def detect_lang_fallback_simple(text: str) -> str:
+    """Simple script-based language detection."""
     if not text:
         return "en"
 
@@ -151,67 +206,6 @@ def detect_lang_fallback(text: str) -> str:
 
     # Default to English
     return "en"
-
-
-def detect_lexicon_language(text: str, project_root: Union[str, Path]) -> Tuple[str, Dict[str, int], str]:
-    """
-    Detect language based on lexicon hits with voting hardening.
-
-    Args:
-        text: Text to analyze
-        project_root: Project root for loading lexicons
-
-    Returns:
-        Tuple of (detected_language, vote_counts, detection_reason)
-    """
-    from collections import Counter
-
-    # Initialize vote counter
-    votes = Counter()
-
-    # Check each supported language
-    for lang in ["ru", "es", "en"]:
-        builtin_lex = load_builtin_lexicon(lang)
-        project_lex = load_project_lexicon(project_root, lang)
-        merged_lex = merge_lexicons(builtin_lex, project_lex)
-
-        if not merged_lex:
-            continue
-
-        tokens = tokenize_normalize(text)
-
-        # Count lexicon hits, excluding neutral anchors
-        for token in tokens:
-            if token in merged_lex:
-                # Check if any of the anchors are neutral
-                anchors = merged_lex[token]
-                if not any(anchor in NEUTRAL_ANCHORS for anchor in anchors):
-                    votes[lang] += 1
-
-    # Convert to regular dict for JSON serialization
-    vote_counts = dict(votes)
-
-    # Apply voting requirements:
-    # - At least 2 distinct hits for the same lang
-    # - Lead over 2nd place by >= 1
-    if not votes:
-        return "auto", vote_counts, "no_lexicon_hits"
-
-    # Get top two languages by votes
-    most_common = votes.most_common(2)
-    top_lang, top_votes = most_common[0]
-
-    # Check minimum vote requirement
-    if top_votes < 2:
-        return "auto", vote_counts, "insufficient_votes"
-
-    # Check lead requirement
-    if len(most_common) > 1:
-        second_lang, second_votes = most_common[1]
-        if top_votes - second_votes < 1:
-            return "auto", vote_counts, "insufficient_lead"
-
-    return top_lang, vote_counts, "lexicon"
 
 
 def get_stemmer(lang: str):
@@ -506,44 +500,39 @@ def generate_stemmed_aliases(phrase: str, lang: str) -> List[str]:
     return unique_aliases
 
 
-def get_effective_language(asr_language: str, text: str, project_root: Union[str, Path] = ".") -> Tuple[str, Dict]:
+def get_effective_language(
+    asr_language: str,
+    text: str,
+    project_root: Union[str, Path] = None,
+    *,
+    return_meta: bool = False,
+):
     """
-    Determine the effective language for lexicon processing with metadata.
+    Back-compatible helper for language detection.
+
+    - If called with 2 args: return lang:str
+    - If called with 3rd arg project_root OR return_meta=True: return (lang:str, meta:dict)
 
     Args:
         asr_language: Language detected by ASR (may be "auto" or None)
         text: Text to analyze if ASR language is not available
-        project_root: Project root for loading lexicons
+        project_root: Project root for loading lexicons (optional)
+        return_meta: Whether to return metadata
 
     Returns:
-        Tuple of (language_code, detection_metadata)
+        Language code (str) or tuple (lang:str, meta:dict)
     """
-    if asr_language and asr_language != "auto":
-        return asr_language, {"reason": "asr", "votes": {}}
+    # Determine if we should return metadata
+    should_return_meta = project_root is not None or return_meta
 
-    # Try lexicon-based detection first
-    lex_lang, votes, reason = detect_lexicon_language(text, project_root)
+    # Get available lexicons
+    available = list_available_lexicons(project_root) if project_root else ["en", "ru", "es"]
 
-    if lex_lang != "auto":
-        return lex_lang, {"reason": reason, "votes": votes}
+    # Detect language with metadata
+    lang, meta = detect_language(text, asr_language, available)
 
-    # Fall back to script-based detection
-    fallback_lang = detect_lang_fallback(text)
-    return fallback_lang, {"reason": "script", "votes": votes}
-
-
-def get_effective_language_simple(asr_language: str, text: str) -> str:
-    """
-    Simple version for backward compatibility.
-
-    Args:
-        asr_language: Language detected by ASR (may be "auto" or None)
-        text: Text to analyze if ASR language is not available
-
-    Returns:
-        Language code to use for lexicon processing
-    """
-    if asr_language and asr_language != "auto":
-        return asr_language
-
-    return detect_lang_fallback(text)
+    # Return based on call signature
+    if should_return_meta:
+        return lang, meta
+    else:
+        return lang

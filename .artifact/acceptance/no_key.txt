@@ -1,0 +1,2 @@
+Configuration Error: OPENAI_API_KEY not found in environment. Please set it in 
+your environment or .env file.

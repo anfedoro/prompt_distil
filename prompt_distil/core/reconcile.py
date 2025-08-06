@@ -240,7 +240,7 @@ def reconcile_text(
     from .surface import load_cache
 
     # Determine effective language for lexicon processing
-    effective_lang, _ = get_effective_language(asr_language, text, project_root)
+    effective_lang, lang_meta = get_effective_language(asr_language, text, project_root)
 
     # Load symbol cache from project root
     cache = load_cache(project_root)

@@ -1,0 +1,135 @@
+{
+  "ir": {
+    "goal": "Improve the sign-in handler logs and rewrite the test that deletes a `delete_task`",
+    "scope_hints": [
+      "Sign-in handler logging",
+      "Test for deleting `delete_task`"
+    ],
+    "must": [
+      "Enhance logging in the sign-in handler",
+      "Rewrite the test related to deleting `delete_task`"
+    ],
+    "must_not": [],
+    "known_entities": [
+      {
+        "path": "test_tasks.py",
+        "symbol": "delete_task",
+        "confidence": 0.9
+      },
+      {
+        "path": "test_auth.py",
+        "symbol": "login_handler",
+        "confidence": 0.8
+      }
+    ],
+    "unknowns": [
+      "Specific improvements required for sign-in handler logs",
+      "Details of the test rewrite for deleting `delete_task`"
+    ],
+    "acceptance": [
+      "Sign-in handler logs are improved",
+      "Test for deleting `delete_task` is rewritten and passes"
+    ],
+    "assumptions": [
+      "`login_handler` corresponds to the sign-in handler",
+      "The test to rewrite is the one that deletes `delete_task` in test_tasks.py"
+    ],
+    "reconciled_identifiers": [
+      "delete_task"
+    ],
+    "unknown_identifier_mentions": [
+      "deletes"
+    ],
+    "lexicon_hits": [],
+    "unresolved_terms": []
+  },
+  "prompts": {
+    "short": "## Goal\nImprove the sign-in handler logs and rewrite the test that deletes a `delete_task`\n\n## 
+Context\n- Sign-in handler logging\n- Test for deleting `delete_task`\n\n## Change Request\n\u2713 Enhance 
+logging in the sign-in handler\n\u2713 Rewrite the test related to deleting `delete_task`\n\n## Related (if 
+any)\n- test_tasks.py \u2014 `delete_task`\n- test_auth.py \u2014 `login_handler`",
+    "std": "## Goal\nImprove the sign-in handler logs and rewrite the test that deletes a `delete_task`\n\n## 
+Context\n- Sign-in handler logging\n- Test for deleting `delete_task`\n\n## Change Request\n**Required:**\n- 
+Enhance logging in the sign-in handler\n- Rewrite the test related to deleting `delete_task`\n\n## 
+Constraints\n**Unclear requirements (handle carefully):**\n- Specific improvements required for sign-in handler 
+logs\n- Details of the test rewrite for deleting `delete_task`\n\n## Acceptance Criteria\n- Sign-in handler logs
+are improved\n- Test for deleting `delete_task` is rewritten and passes\n\n## Assumptions\n- `login_handler` 
+corresponds to the sign-in handler\n- The test to rewrite is the one that deletes `delete_task` in 
+test_tasks.py\n\n## Related (if any)\n- test_tasks.py \u2014 `delete_task`\n- test_auth.py \u2014 
+`login_handler`",
+    "standard": "## Goal\nImprove the sign-in handler logs and rewrite the test that deletes a 
+`delete_task`\n\n## Context\n- Sign-in handler logging\n- Test for deleting `delete_task`\n\n## Change 
+Request\n**Required:**\n- Enhance logging in the sign-in handler\n- Rewrite the test related to deleting 
+`delete_task`\n\n## Constraints\n**Unclear requirements (handle carefully):**\n- Specific improvements required 
+for sign-in handler logs\n- Details of the test rewrite for deleting `delete_task`\n\n## Acceptance Criteria\n- 
+Sign-in handler logs are improved\n- Test for deleting `delete_task` is rewritten and passes\n\n## 
+Assumptions\n- `login_handler` corresponds to the sign-in handler\n- The test to rewrite is the one that deletes
+`delete_task` in test_tasks.py\n\n## Related (if any)\n- test_tasks.py \u2014 `delete_task`\n- test_auth.py 
+\u2014 `login_handler`",
+    "verbose": "## Goal\nImprove the sign-in handler logs and rewrite the test that deletes a 
+`delete_task`\n\n**Project Context:**\n- Sign-in handler logging\n- Test for deleting `delete_task`\n\n## Change
+Request\n### Required Changes\n- Enhance logging in the sign-in handler\n- Rewrite the test related to deleting 
+`delete_task`\n\n## Constraints\n### Unclear Requirements\nThe following items need clarification or careful 
+handling:\n- Specific improvements required for sign-in handler logs\n- Details of the test rewrite for deleting
+`delete_task`\n\n### General Constraints\n- Maintain existing public APIs unless explicitly requested\n- Follow 
+existing code patterns and conventions\n- Ensure backward compatibility where possible\n\n## Acceptance 
+Criteria\n### Functional Requirements\n- Sign-in handler logs are improved\n- Test for deleting `delete_task` is
+rewritten and passes\n\n### Quality Requirements\n- Code should be well-tested\n- Documentation should be 
+updated if needed\n- No regressions in existing functionality\n\n## Assumptions\nThe following assumptions were 
+made during analysis:\n- `login_handler` corresponds to the sign-in handler\n- The test to rewrite is the one 
+that deletes `delete_task` in test_tasks.py\n\n## Out of Scope\n- Performance optimizations not explicitly 
+requested\n- Major architectural changes unless necessary\n- Changes to external dependencies\n- UI/UX 
+modifications unless specified\n\n## Deliverables\n- Modified source code files\n- Updated or new tests as 
+appropriate\n- Documentation updates if needed\n- Clear commit messages explaining changes\n\n## Related (if 
+any)\n- test_tasks.py \u2014 `delete_task` (confidence: 0.90)\n- test_auth.py \u2014 `login_handler` 
+(confidence: 0.80)"
+  },
+  "session_passport": {
+    "transcript_stats": {
+      "length": 80,
+      "words": 14,
+      "lines": 1
+    },
+    "processing_stats": {
+      "known_entities_found": 2,
+      "unknowns_identified": 2,
+      "assumptions_made": 2,
+      "requirements_extracted": 2,
+      "prohibitions_identified": 0
+    },
+    "context_info": {
+      "project_context_used": true,
+      "surface_hints_count": 4
+    },
+    "dropped_or_simplified": [
+      "2 unclear items flagged for review"
+    ],
+    "model_used": "gpt-4.1-mini",
+    "assumptions_made": [
+      "`login_handler` corresponds to the sign-in handler",
+      "The test to rewrite is the one that deletes `delete_task` in test_tasks.py"
+    ],
+    "preserved_identifiers": [
+      "delete_task",
+      "login_handler"
+    ],
+    "reconciled_identifiers": [
+      "delete_task"
+    ],
+    "unknown_identifier_mentions": [
+      "deletes"
+    ],
+    "project_root": ".",
+    "asr_language": "auto",
+    "target_language": "en",
+    "lexicon_lang": "en",
+    "lexicon_hits": [],
+    "lex_mode": "hybrid",
+    "stemmer_lang": "en",
+    "unresolved_terms": [],
+    "lang_detect_meta": {
+      "reason": "script",
+      "votes": {}
+    }
+  }
+}

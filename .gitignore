@@ -1,10 +1,73 @@
-# Python-generated files
+{{REWRITTEN_CODE}}
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Python build / caches ---
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
 build/
 dist/
-wheels/
-*.egg-info
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.pytype/
+pytest.xml
+coverage.xml
+.python-version
 
-# Virtual environments
-.venv
+# --- Environments / secrets ---
+.venv/
+venv/
+.env
+.env.*
+.envrc
+
+# --- uv ---
+# uv.lock should be stored IN THE REPO (to lock dependencies)
+.uv/            # in case a local uv cache folder appears in the project
+
+# --- Prompt Distiller cache ---
+# The project's cache is stored in .prompt_distil — ignore everything,
+# but allow committing user lexicons (if any exist).
+.prompt_distil/*
+!.prompt_distil/lexicon/
+!.prompt_distil/lexicon/*.json
+!.prompt_distil/.gitkeep
+
+# --- Acceptance / runner artifacts ---
+acceptance_artifacts/
+acceptance_runs/
+
+# --- Examples/audio (large binaries) ---
+*.wav
+*.aiff
+examples/**/*.wav
+examples/**/*.aiff
+# Allow text transcripts in examples
+!examples/transcripts/**
+!examples/transcripts/*.txt
+!examples/transcripts/*.md
+
+# --- Logs / temporary ---
+*.log
+*.tmp
+*.bak
+
+# --- Temporary files from the tree that are not needed in history ---
+=0.12
+=2
+test_fr.json
+test_fr2.json
+{{REWRITTEN_CODE}}
