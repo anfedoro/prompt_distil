@@ -116,6 +116,20 @@ class ProgressReporter:
             full_message = f"{base_message} - {sub_message} ({current}/{total})"
             self._status.update(f"[dim]{full_message}[/dim]")
 
+    def complete_sub_step(self, message: str) -> None:
+        """
+        Mark a sub-step as completed with a persistent checkmark message.
+
+        This prints a completed sub-step without changing the current main step,
+        ensuring that detailed reconciliation and processing steps remain visible.
+
+        Args:
+            message: Sub-step completion message to display
+        """
+        if self._console is not None:
+            # Print with indented checkmark to show it's a sub-step
+            self._console.print(f"  [green]✓[/green] [dim]{message}[/dim]")
+
     def is_active(self) -> bool:
         """
         Check if the reporter is currently active.

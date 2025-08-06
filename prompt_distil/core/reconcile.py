@@ -301,7 +301,7 @@ def reconcile_text(
     from .surface import load_cache
 
     # Step 1: Language detection and cache loading
-    reporter.sub_step("Detecting language and loading cache", 1, 4)
+    reporter.sub_step("Detecting language and loading symbol cache", 1, 5)
 
     # Determine effective language for lexicon processing
     effective_lang, lang_meta = get_effective_language(asr_language, text, project_root)
@@ -321,28 +321,35 @@ def reconcile_text(
     unresolved_terms = []
     reconciled_text = text
 
-    # Step 2: Process based on mode
+    # Step 2: Process based on mode with explicit model calls
     if lex_mode == "hybrid":
         # New optimized hybrid mode: LLM first, then rules on marked content
-        reporter.sub_step("LLM preprocessing and selective rules", 2, 3)
+        reporter.sub_step("Invoking reconciliation model and performing n-gram analysis", 2, 5)
         reconciled_text, matched_symbols, unknown_mentions, lexicon_hits = _process_llm_first_hybrid(text, known_symbols, effective_lang, project_root)
     elif lex_mode == "rules":
         # Traditional rules-only processing
-        reporter.sub_step("Processing with rules-based matching", 2, 3)
+        reporter.sub_step("Performing rules-based n-gram matching", 2, 5)
         matched_symbols, unknown_mentions, lexicon_hits, reconciled_text = _process_rules_based(text, known_symbols, effective_lang, project_root)
+        reporter.complete_sub_step("Completed rules-based n-gram matching")
     elif lex_mode == "llm":
-        # LLM-only processing
-        reporter.sub_step("Processing with LLM-based matching", 2, 3)
+        # LLM-only processing - remove any existing backticks first
+        reporter.sub_step("Invoking reconciliation model for symbol mapping", 2, 5)
+
+        # Remove all backticks from text before LLM processing
+        import re
+
+        clean_text = re.sub(r"`([^`]+)`", r"\1", text)
+
         candidate_symbols = list(known_symbols.keys())
-        llm_matched, llm_unknown = _process_llm_based(text, candidate_symbols, known_symbols, None)
+        llm_matched, llm_unknown = _process_llm_based(clean_text, candidate_symbols, known_symbols, None)
+        reporter.complete_sub_step("Called reconciliation model for symbol mapping")
 
         matched_symbols = llm_matched
         unknown_mentions = llm_unknown
 
-        # Apply LLM results to text
-        for symbol in llm_matched:
-            reconciled_text = reconciled_text.replace(symbol.replace("_", " "), f"`{symbol}`")
-            reconciled_text = reconciled_text.replace(symbol, f"`{symbol}`")
+        # In LLM-only mode, do NOT add backticks to the reconciled text
+        # Keep the text clean without backticks for the distillation model
+        reconciled_text = clean_text
 
     return reconciled_text, matched_symbols, unknown_mentions, lexicon_hits, unresolved_terms
 
@@ -357,12 +364,12 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
     reconciled_text = text
 
     # Sub-step 1: Apply lexicon normalization
-    reporter.sub_step_with_progress("Processing with rules-based matching", "applying lexicon normalization", 1, 5)
+    reporter.sub_step_with_progress("Rules-based n-gram matching", "applying lexicon normalization", 1, 5)
     normalized_text, text_lexicon_hits, _ = normalize_phrase_with_lexicon(text, effective_lang, project_root)
     lexicon_hits.extend(text_lexicon_hits)
 
     # Sub-step 2: Apply context rules
-    reporter.sub_step_with_progress("Processing with rules-based matching", "applying context rules", 2, 5)
+    reporter.sub_step_with_progress("Rules-based n-gram matching", "applying context rules", 2, 5)
     context_matches = apply_context_rules(text, known_symbols, effective_lang, project_root)
     context_matches_norm = apply_context_rules(normalized_text, known_symbols, effective_lang, project_root)
 
@@ -377,7 +384,7 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
             reconciled_text = reconciled_text.replace(original, f"`{symbol_name}`")
 
     # Sub-step 3: Extract and process n-grams
-    reporter.sub_step_with_progress("Processing with rules-based matching", "extracting n-grams for fuzzy matching", 3, 5)
+    reporter.sub_step_with_progress("Rules-based n-gram matching", "extracting n-grams for symbol search", 3, 5)
     original_tokens = normalize_text(text).split()
     lexicon_tokens = normalize_text(normalized_text).split()
 
@@ -396,8 +403,8 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
     # Remove duplicates
     ngrams = list(set(ngrams))
 
-    # Sub-step 4: Perform fuzzy matching
-    reporter.sub_step_with_progress("Processing with rules-based matching", f"fuzzy matching {len(ngrams)} n-grams", 4, 5)
+    # Sub-step 4: Perform fuzzy matching on n-grams
+    reporter.sub_step_with_progress("Rules-based n-gram matching", f"performing fuzzy matching on {len(ngrams)} n-grams", 4, 5)
 
     # Track replacements to avoid conflicts
     replacements = []
@@ -408,7 +415,7 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
 
         # Report progress for large ngram sets
         if len(ngrams) > 50 and i % 10 == 0:
-            reporter.sub_step_with_progress("Processing with rules-based matching", f"fuzzy matching n-grams ({i + 1}/{len(ngrams)})", 4, 5)
+            reporter.sub_step_with_progress("Rules-based n-gram matching", f"processing n-grams ({i + 1}/{len(ngrams)})", 4, 5)
 
         best_match = None
         best_score = 0.0
@@ -436,8 +443,8 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
             if original_ngram and original_ngram not in unknown_mentions:
                 unknown_mentions.append(original_ngram)
 
-    # Sub-step 5: Apply replacements
-    reporter.sub_step_with_progress("Processing with rules-based matching", f"applying {len(replacements)} replacements", 5, 5)
+    # Sub-step 5: Apply symbol replacements
+    reporter.sub_step_with_progress("Rules-based n-gram matching", f"applying {len(replacements)} symbol replacements", 5, 5)
 
     # Apply replacements, longest first to avoid partial replacements
     replacements.sort(key=lambda x: len(x[0]), reverse=True)
@@ -464,22 +471,29 @@ def _process_llm_first_hybrid(text: str, known_symbols: Dict[str, Dict], effecti
     from .progress import reporter
 
     # Step 1: Filter relevant symbols for LLM processing
-    reporter.sub_step_with_progress("LLM preprocessing", "filtering relevant symbols", 1, 3)
+    reporter.sub_step_with_progress("Reconciliation model processing", "filtering relevant project symbols", 1, 4)
     relevant_symbols = _filter_relevant_symbols(text, known_symbols, max_symbols=50)
+    reporter.complete_sub_step("Filtered relevant project symbols for reconciliation")
 
     if not relevant_symbols:
         # No relevant symbols found, fall back to original text
         return text, [], [], []
 
     # Step 2: Use LLM to preprocess and mark symbols
-    reporter.sub_step("LLM preprocessing", 2, 3)
+    reporter.sub_step_with_progress("Reconciliation model processing", "calling LLM for symbol identification", 2, 4)
     preprocessed_text = llm_preprocess_text(text, relevant_symbols)
+    reporter.complete_sub_step("Called reconciliation model for symbol identification")
 
-    # Step 3: Apply rules selectively to marked content
-    reporter.sub_step("Processing marked symbols with rules", 3, 3)
+    # Step 3: Apply rules selectively to marked content with n-gram analysis
+    reporter.sub_step_with_progress("Reconciliation model processing", "performing n-gram search on identified symbols", 3, 4)
     matched_symbols, unknown_mentions, lexicon_hits, reconciled_text = _process_marked_text_with_rules(
         preprocessed_text, known_symbols, effective_lang, project_root
     )
+    reporter.complete_sub_step("Performed n-gram search on identified symbols")
+
+    # Step 4: Finalize reconciliation results
+    reporter.sub_step_with_progress("Reconciliation model processing", "finalizing symbol reconciliation", 4, 4)
+    reporter.complete_sub_step("Finalized symbol reconciliation")
 
     return reconciled_text, matched_symbols, unknown_mentions, lexicon_hits
 
@@ -488,7 +502,7 @@ def _process_marked_text_with_rules(
     text: str, known_symbols: Dict[str, Dict], effective_lang: str, project_root: str
 ) -> Tuple[List[str], List[str], List[str], str]:
     """
-    Process text that has been marked by LLM, applying rules only to backtick-marked content.
+    Process text that has been marked by LLM, applying rules and n-gram search to backtick-marked content.
 
     Args:
         text: Text with LLM-marked symbols (backticks)
@@ -501,7 +515,7 @@ def _process_marked_text_with_rules(
     """
     import re
 
-    from .lexicon import normalize_phrase_with_lexicon
+    from .lexicon import generate_stemmed_aliases, normalize_phrase_with_lexicon
 
     matched_symbols = []
     unknown_mentions = []
@@ -516,7 +530,7 @@ def _process_marked_text_with_rules(
     normalized_text, text_lexicon_hits, _ = normalize_phrase_with_lexicon(text, effective_lang, project_root)
     lexicon_hits.extend(text_lexicon_hits)
 
-    # Process each marked phrase with focused rules
+    # Step 1: Process each marked phrase with direct matching
     for phrase in marked_phrases:
         # Check if phrase directly matches a known symbol
         if phrase in known_symbols:
@@ -544,6 +558,85 @@ def _process_marked_text_with_rules(
             # Keep the phrase but add to unknown mentions
             if phrase not in unknown_mentions:
                 unknown_mentions.append(phrase)
+
+    # Step 2: Generate n-grams ONLY from backticked keywords extracted by RECONCILIATION LLM model
+    from .progress import reporter
+
+    reporter.sub_step_with_progress("Processing marked symbols with rules", "extracting n-grams from LLM keywords only", 1, 2)
+
+    # Generate n-grams only from the backticked keywords (LLM extracted)
+    ngrams = []
+
+    if marked_phrases:
+        # Apply lexicon normalization to marked phrases only
+        for phrase in marked_phrases:
+            normalized_phrase, _, _ = normalize_phrase_with_lexicon(phrase, effective_lang, project_root)
+
+            # Extract tokens from the marked phrase only
+            phrase_tokens = normalize_text(phrase).split()
+            normalized_phrase_tokens = normalize_text(normalized_phrase).split()
+
+            # Apply stemming to phrase tokens
+            from .lexicon import stem_tokens
+
+            stemmed_phrase = stem_tokens(phrase_tokens, effective_lang)
+            stemmed_normalized = stem_tokens(normalized_phrase_tokens, effective_lang)
+
+            # Generate n-grams from the marked phrase tokens only
+            ngrams.extend(extract_ngrams(" ".join(phrase_tokens)))
+            ngrams.extend(extract_ngrams(" ".join(normalized_phrase_tokens)))
+            ngrams.extend(extract_ngrams(" ".join(stemmed_phrase)))
+            ngrams.extend(extract_ngrams(" ".join(stemmed_normalized)))
+
+    # Remove duplicates
+    ngrams = list(set(ngrams))
+
+    reporter.sub_step_with_progress("Processing marked symbols with rules", f"performing fuzzy matching on {len(ngrams)} keyword n-grams", 2, 2)
+
+    # Track improved matches for backticked keywords only
+    improved_matches = []
+
+    for ngram in ngrams:
+        if len(ngram.strip()) < 2:  # Skip very short ngrams
+            continue
+
+        best_match = None
+        best_score = 0.0
+
+        # Only consider symbols that exist in the cache and aren't already matched
+        for symbol_name, symbol_info in known_symbols.items():
+            if symbol_name in matched_symbols:
+                continue  # Skip already matched symbols
+
+            # Generate aliases with stemming support
+            aliases = generate_aliases(symbol_name, symbol_info.get("kind", "unknown"), effective_lang, project_root)
+            aliases.extend(generate_stemmed_aliases(symbol_name, effective_lang))
+
+            score = fuzzy_match_symbol(ngram, aliases)
+
+            if score and score > best_score:
+                best_score = score
+                best_match = symbol_name
+
+        if best_match and best_match in known_symbols and best_match not in matched_symbols:
+            # Map the n-gram back to its source marked phrase for replacement
+            for phrase in marked_phrases:
+                if ngram.lower() in phrase.lower() or phrase.lower() in ngram.lower():
+                    # Replace the original marked phrase with the improved match
+                    old_marked = f"`{phrase}`"
+                    new_marked = f"`{best_match}`"
+                    if old_marked in reconciled_text and new_marked not in reconciled_text:
+                        improved_matches.append((old_marked, new_marked))
+                        matched_symbols.append(best_match)
+                    break
+        elif best_score > 0.6:  # Potential match but not in cache
+            if ngram not in unknown_mentions:
+                unknown_mentions.append(ngram)
+
+    # Apply improved matches, replacing marked phrases with better symbol matches
+    for old_marked, new_marked in improved_matches:
+        if old_marked in reconciled_text:
+            reconciled_text = reconciled_text.replace(old_marked, new_marked)
 
     return matched_symbols, unknown_mentions, lexicon_hits, reconciled_text
 

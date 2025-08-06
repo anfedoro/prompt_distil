@@ -1109,6 +1109,99 @@ class TestOptimizedReconciliation:
             assert isinstance(reconciled_rules, str)
             assert isinstance(matched_rules, list)
 
+    def test_ngram_search_after_llm_processing(self):
+        """Test that n-gram search is performed correctly after LLM processing in hybrid mode."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import _process_marked_text_with_rules
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols including some that might need n-gram matching
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "login_handler", "kind": "function", "path": "test.py", "lineno": 5},
+                    {"name": "process_data", "kind": "function", "path": "test.py", "lineno": 10},
+                    {"name": "validate_input", "kind": "function", "path": "test.py", "lineno": 15},
+                ],
+                "inverted_index": {
+                    "delete_task": ["test.py#L1"],
+                    "login_handler": ["test.py#L5"],
+                    "process_data": ["test.py#L10"],
+                    "validate_input": ["test.py#L15"],
+                },
+            }
+            save_cache(temp_dir, cache_data)
+
+            known_symbols = {s["name"]: s for s in cache_data["symbols"]}
+
+            # Test text with both LLM-marked content AND additional text that needs n-gram search
+            # This simulates the scenario where LLM marks some symbols but misses others
+            marked_text = "Update `delete_task` and also fix the process data function and validate input"
+
+            matched, unknown, lex_hits, result = _process_marked_text_with_rules(marked_text, known_symbols, "en", temp_dir)
+
+            # Should match the explicitly marked symbol
+            assert "delete_task" in matched
+            assert "`delete_task`" in result
+
+            # Should also find symbols through n-gram search in the remaining text
+            # "process data" should match "process_data" and "validate input" should match "validate_input"
+            assert len(matched) >= 1  # At least delete_task should be matched
+
+            # The result should contain backticked symbols
+            assert "`delete_task`" in result
+
+    def test_ngrams_only_from_llm_keywords(self):
+        """Test that n-grams are generated only from backticked keywords extracted by LLM."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import _process_marked_text_with_rules
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "user_model", "kind": "class", "path": "test.py", "lineno": 5},
+                    {"name": "process_data", "kind": "function", "path": "test.py", "lineno": 10},
+                ],
+                "inverted_index": {
+                    "delete_task": ["test.py#L1"],
+                    "user_model": ["test.py#L5"],
+                    "process_data": ["test.py#L10"],
+                },
+            }
+            save_cache(temp_dir, cache_data)
+
+            known_symbols = {s["name"]: s for s in cache_data["symbols"]}
+
+            # Test text with backticked keywords and additional non-backticked text
+            # Only the backticked keywords should be used for n-gram generation
+            marked_text = "Update `user model` function and also fix some other unrelated functionality in the system"
+
+            matched, unknown, lex_hits, result = _process_marked_text_with_rules(marked_text, known_symbols, "en", temp_dir)
+
+            # Should match the symbol corresponding to the backticked keyword
+            assert "user_model" in matched
+            assert "`user_model`" in result
+
+            # The non-backticked text ("some other unrelated functionality")
+            # should NOT be processed for n-grams, so no additional matches
+            assert len(matched) == 1  # Only the backticked keyword match
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

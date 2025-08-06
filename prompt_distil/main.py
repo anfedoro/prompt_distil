@@ -90,13 +90,14 @@ def distill(
             if not load_cache(project_root):
                 ensure_cache(project_root, save=False)
 
-            # Process transcript (always use English for text input)
+            # Begin distillation process with detailed status reporting
+            reporter.step("Starting transcript distillation process…")
             result = distill_transcript(text, profile, project_root, "en", "auto", lex_mode)
 
             # Display results
             reporter.step("Printing results…")
-            _display_distillation_result(result, profile, output_format)
             reporter.complete_step()
+            _display_distillation_result(result, profile, output_format)
 
     except ConfigError as e:
         console.print(f"[bold red]Configuration Error:[/bold red] {e}")
@@ -171,7 +172,8 @@ def from_audio(
             # Determine target language
             target_language = "en" if translate or final_lang == "en" else "auto"
 
-            # Distill transcript
+            # Begin distillation process with detailed status reporting
+            reporter.step("Starting transcript distillation process…")
             result = distill_transcript(transcript_text, profile, project_root, target_language, transcript_result.lang_hint, lex_mode)
 
             # Update session passport with ASR language info
@@ -179,8 +181,8 @@ def from_audio(
 
             # Display results
             reporter.step("Printing results…")
-            _display_distillation_result(result, profile, output_format)
             reporter.complete_step()
+            _display_distillation_result(result, profile, output_format)
 
     except (ConfigError, SpeechError) as e:
         console.print(f"[bold red]Error:[/bold red] {e}")

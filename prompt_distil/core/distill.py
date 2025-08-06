@@ -70,38 +70,42 @@ class TranscriptDistiller:
         Raises:
             DistillationError: If distillation fails
         """
-        # Protect code identifiers
-        reporter.step("Protecting identifiers…")
+        # Step 1: Protect code identifiers
+        reporter.step("Protecting code identifiers…")
         from .speech import protect_code_identifiers
 
         protected_transcript = protect_code_identifiers(transcript)
 
-        # Reconcile text with known symbols from project cache (pass asr_language and lex_mode)
-        reporter.step("Reconciling symbols…")
+        # Step 2: Reconcile text with known symbols - includes LLM calls and n-gram search
+        reporter.step("Invoking reconciliation model and performing symbol matching…")
         reconciled_transcript, reconciled_identifiers, unknown_mentions, lexicon_hits, unresolved_terms = reconcile_text(
             protected_transcript, self.project_root, asr_language, lex_mode
         )
 
-        # Load cache for compact hints
-        reporter.step("Loading symbol cache…")
+        # Step 3: Load symbol cache for context hints
+        reporter.step("Loading project symbol cache…")
         cache = load_cache(self.project_root) or ensure_cache(self.project_root, save=False)
 
-        # Prepare system prompt with distillation instructions and symbol hints
-        reporter.step("Preparing prompts…")
+        # Step 4: Prepare system and user prompts for distillation
+        reporter.step("Preparing distillation prompts…")
         compact_hints = self._prepare_compact_hints(cache, surface_hints)
-        system_prompt = self._create_system_prompt(compact_hints, target_language)
+        system_prompt = self._create_system_prompt(compact_hints, target_language, lex_mode)
 
-        # Create user message with reconciled transcript
-        user_prompt = self._create_user_prompt(reconciled_transcript)
+        # Step 5: Clean reconciled transcript before sending to distillation model
+        reporter.step("Cleaning backtick symbols for distillation model…")
+        cleaned_transcript = self._clean_backticks_for_distillation(reconciled_transcript, lex_mode)
+        user_prompt = self._create_user_prompt(cleaned_transcript)
+        reporter.complete_sub_step("Cleaned backtick-enclosed words from prompt text")
 
         try:
-            reporter.step_with_context("Calling the model", "for distillation")
+            reporter.step_with_context("Calling the distillation model", "for final prompt generation")
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
                 response_format={"type": "json_object"},
                 temperature=0.1,  # Low temperature for consistent parsing
             )
+            reporter.complete_sub_step("Received response from distillation model")
 
             # Parse response
             content = response.choices[0].message.content
@@ -117,6 +121,7 @@ class TranscriptDistiller:
                 data["lexicon_hits"] = lexicon_hits
                 data["unresolved_terms"] = unresolved_terms
                 ir = IRLite(**data)
+                reporter.complete_sub_step("Parsed distillation model response into structured format")
                 return ir
             except json.JSONDecodeError as e:
                 raise DistillationError(f"Invalid JSON response: {e}")
@@ -170,10 +175,11 @@ class TranscriptDistiller:
         ir = self.build_ir_lite(transcript, surface_hints, target_language, asr_language, lex_mode)
 
         # Render all prompts
-        reporter.step("Rendering prompts…")
+        reporter.step("Rendering final prompts…")
         prompts = self.render_prompts(ir)
 
         # Create session passport
+        reporter.step("Creating session summary…")
         passport = self._create_session_passport(transcript, ir, surface_hints, target_language, asr_language, lex_mode)
 
         return {"ir": ir, "prompts": prompts, "selected_prompt": prompts.get(profile, prompts["standard"]), "session_passport": passport}
@@ -207,10 +213,11 @@ class TranscriptDistiller:
 
         return hints
 
-    def _create_system_prompt(self, compact_hints: Optional[Dict] = None, target_language: Literal["en", "auto"] = "en") -> str:
+    def _create_system_prompt(
+        self, compact_hints: Optional[Dict] = None, target_language: Literal["en", "auto"] = "en", lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid"
+    ) -> str:
         """Create system prompt for transcript distillation."""
-        base_prompt = (
-            """You are an expert at distilling noisy transcripts into structured intent representations for coding agents.
+        base_prompt = """You are an expert at distilling noisy transcripts into structured intent representations for coding agents.
 
 Your task is to analyze a transcript and extract structured information in JSON format that follows this schema:
 
@@ -241,21 +248,33 @@ Guidelines:
 7. Don't include implementation advice - focus on WHAT, not HOW
 8. Use confidence scores (0.0-1.0) for known_entities based on clarity
 
-CRITICAL: Code Identifier Preservation
+CRITICAL: Code Identifier Preservation"""
+
+        # Add mode-specific instructions for code identifier handling
+        if lex_mode == "llm":
+            base_prompt += """
+- Code identifiers are provided as clean text without backticks
+- Treat underscored words (like user_login, delete_task) as code entities
+- Do not add backticks or special formatting to code identifiers
+- Preserve code identifiers exactly as they appear in the transcript"""
+        else:
+            base_prompt += """
 - Preserve backticked identifiers verbatim; do not translate, rewrite, or pluralize them
 - Treat them as code entities (functions/classes/files)
-- If a Russian transcript contains code-like tokens (underscores or backticks), keep them as-is in IR-lite and the final English prompts
-- Code identifiers like `delete_task`, `login_handler`, `FastAPI` must remain exactly as written
+- If transcript contains code-like tokens with underscores, keep them as-is
+- Code identifiers like `delete_task`, `login_handler` must remain exactly as written"""
+
+        base_prompt += """
 
 LANGUAGE REQUIREMENTS:
 - Produce final prompts in """
-            + ("English (default)" if target_language == "en" else "the source language")
-            + """
+
+        base_prompt += "English (default)" if target_language == "en" else "the source language"
+        base_prompt += """
 - If source is not English and target is English, translate narrative text only, and preserve backticked identifiers verbatim
 - Never translate code identifiers, file paths, or technical symbols
 
 """
-        )
 
         if compact_hints:
             hint_text = self._format_compact_hints(compact_hints)
@@ -466,6 +485,34 @@ Extract the information into the JSON schema format as instructed."""
                 identifiers.add(entity.symbol)
 
         return sorted(list(identifiers))
+
+    def _clean_backticks_for_distillation(self, text: str, lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid") -> str:
+        """
+        Clean backtick-enclosed words from text before sending to distillation model.
+
+        Behavior depends on lex_mode:
+        - LLM mode: Text should already be clean, no additional processing needed
+        - Hybrid/Rules mode: Removes backticks while preserving the identifiers
+
+        Args:
+            text: Text with potential backtick-enclosed identifiers
+            lex_mode: Lexicon processing mode to determine cleaning behavior
+
+        Returns:
+            Cleaned text appropriate for the distillation model
+        """
+        import re
+
+        if lex_mode == "llm":
+            # In LLM-only mode, text should already be clean of backticks
+            # But ensure any remaining backticks are removed
+            cleaned_text = re.sub(r"`([^`]+)`", r"\1", text)
+        else:
+            # In hybrid/rules mode, remove backticks but preserve the enclosed content
+            # This ensures identifiers are clean for the distillation model
+            cleaned_text = re.sub(r"`([^`]+)`", r"\1", text)
+
+        return cleaned_text
 
 
 # Convenience functions for simple use cases
