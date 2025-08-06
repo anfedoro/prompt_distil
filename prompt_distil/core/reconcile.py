@@ -7,9 +7,11 @@ Supports multilingual lexicon-based normalization for improved identifier reconc
 """
 
 import re
-from difflib import SequenceMatcher
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
+
+from rapidfuzz import fuzz
 
 from .lexicon import (
     generate_lexicon_aware_aliases,
@@ -18,6 +20,7 @@ from .lexicon import (
     normalize_phrase_with_lexicon,
     stem_tokens,
 )
+from .timing import timer
 
 # Reconciliation thresholds
 CONTEXT_THRESHOLD = 0.75
@@ -45,6 +48,12 @@ def generate_aliases(symbol_name: str, symbol_kind: str, lang: str = "en", proje
     Returns:
         List of possible aliases for the symbol
     """
+    return _generate_aliases_cached(symbol_name, symbol_kind, lang, str(project_root))
+
+
+@lru_cache(maxsize=512)
+def _generate_aliases_cached(symbol_name: str, symbol_kind: str, lang: str = "en", project_root_str: str = ".") -> List[str]:
+    """Cached implementation of generate_aliases."""
     aliases = [symbol_name]
 
     # Add snake_case version if it's CamelCase
@@ -73,12 +82,12 @@ def generate_aliases(symbol_name: str, symbol_kind: str, lang: str = "en", proje
 
     # Add lexicon-aware aliases if not English
     if lang != "en":
-        lexicon_aliases = generate_lexicon_aware_aliases(symbol_name, lang, project_root)
+        lexicon_aliases = generate_lexicon_aware_aliases(symbol_name, lang, project_root_str)
         aliases.extend(lexicon_aliases)
 
         # Also try with spaced version
         if "_" in symbol_name:
-            spaced_aliases = generate_lexicon_aware_aliases(symbol_name.replace("_", " "), lang, project_root)
+            spaced_aliases = generate_lexicon_aware_aliases(symbol_name.replace("_", " "), lang, project_root_str)
             aliases.extend(spaced_aliases)
 
     # Remove duplicates while preserving order
@@ -142,6 +151,7 @@ def extract_ngrams(text: str, min_len: int = 1, max_len: int = 3) -> List[str]:
     return ngrams
 
 
+@timer
 def fuzzy_match_symbol(query: str, symbol_aliases: List[str], threshold: float = GENERAL_THRESHOLD) -> Optional[float]:
     """
     Perform fuzzy matching between query and symbol aliases.
@@ -165,8 +175,8 @@ def fuzzy_match_symbol(query: str, symbol_aliases: List[str], threshold: float =
         if normalized_query == normalized_alias:
             return 1.0
 
-        # Fuzzy match using SequenceMatcher
-        score = SequenceMatcher(None, normalized_query, normalized_alias).ratio()
+        # Fuzzy match using rapidfuzz
+        score = fuzz.ratio(normalized_query, normalized_alias) / 100.0
 
         # Also try substring matching
         if normalized_query in normalized_alias or normalized_alias in normalized_query:
@@ -220,6 +230,7 @@ def apply_context_rules(text: str, known_symbols: Dict[str, Dict], lang: str = "
     return matches
 
 
+@timer
 def reconcile_text(
     text: str, project_root: str = ".", asr_language: str = "auto", lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid"
 ) -> Tuple[str, List[str], List[str], List[str], List[str]]:

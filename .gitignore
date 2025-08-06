@@ -71,3 +71,7 @@ examples/**/*.aiff
 test_fr.json
 test_fr2.json
 {{REWRITTEN_CODE}}
+
+# python progiling
+# cProfile
+*.prof

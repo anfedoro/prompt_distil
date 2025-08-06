@@ -1,42 +1,1547 @@
 {
   "version": 1,
-  "generated_at": "2025-08-06T13:35:51.606337",
+  "generated_at": "2025-08-06T17:06:20.000350",
   "root": "/Users/anfedoro/repositories/prompt_distil",
   "globs": [
-    "test_*.py"
+    "**/*.py"
   ],
   "files": [
     {
-      "path": "test_tasks.py",
-      "mtime": 1754476529.4301746,
+      "path": "prompt_distil/__init__.py",
+      "mtime": 1754467735.6948166,
       "size": 111
     },
     {
-      "path": "test_auth.py",
-      "mtime": 1754476538.3649518,
-      "size": 125
+      "path": "prompt_distil/core/__init__.py",
+      "mtime": 1754468471.7254596,
+      "size": 303
+    },
+    {
+      "path": "tests/__init__.py",
+      "mtime": 1754468316.1288228,
+      "size": 310
+    },
+    {
+      "path": "prompt_distil/core/config.py",
+      "mtime": 1754473483.4034407,
+      "size": 2526
+    },
+    {
+      "path": "prompt_distil/core/types.py",
+      "mtime": 1754473288.934216,
+      "size": 3323
+    },
+    {
+      "path": "prompt_distil/core/speech.py",
+      "mtime": 1754470868.2441525,
+      "size": 6371
+    },
+    {
+      "path": "prompt_distil/core/llm_map.py",
+      "mtime": 1754473133.5822225,
+      "size": 6657
+    },
+    {
+      "path": "prompt_distil/core/prompt.py",
+      "mtime": 1754476122.5618532,
+      "size": 10076
+    },
+    {
+      "path": "prompt_distil/core/surface.py",
+      "mtime": 1754471734.494805,
+      "size": 14509
+    },
+    {
+      "path": "prompt_distil/main.py",
+      "mtime": 1754475160.1169147,
+      "size": 15151
+    },
+    {
+      "path": "prompt_distil/core/lexicon.py",
+      "mtime": 1754477682.6788156,
+      "size": 15981
+    },
+    {
+      "path": "prompt_distil/core/reconcile.py",
+      "mtime": 1754476091.9091077,
+      "size": 17010
+    },
+    {
+      "path": "prompt_distil/core/distill.py",
+      "mtime": 1754475775.9797795,
+      "size": 19656
+    },
+    {
+      "path": "tests/test_basic.py",
+      "mtime": 1754475732.9156253,
+      "size": 29483
     }
   ],
   "symbols": [
     {
-      "name": "delete_task",
-      "kind": "function",
-      "path": "test_tasks.py",
-      "lineno": 1
+      "name": "ConfigError",
+      "kind": "class",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 15
     },
     {
-      "name": "login_handler",
+      "name": "load_config",
       "kind": "function",
-      "path": "test_auth.py",
-      "lineno": 1
+      "path": "prompt_distil/core/config.py",
+      "lineno": 22
+    },
+    {
+      "name": "Config",
+      "kind": "class",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 27
+    },
+    {
+      "name": "get_client",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 67
+    },
+    {
+      "name": "validate_config",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 89
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 30
+    },
+    {
+      "name": "openai_api_key",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 34
+    },
+    {
+      "name": "distil_model",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 42
+    },
+    {
+      "name": "asr_model",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 47
+    },
+    {
+      "name": "openai_timeout",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 52
+    },
+    {
+      "name": "max_retries",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 57
+    },
+    {
+      "name": "KnownEntity",
+      "kind": "class",
+      "path": "prompt_distil/core/types.py",
+      "lineno": 13
+    },
+    {
+      "name": "IRLite",
+      "kind": "class",
+      "path": "prompt_distil/core/types.py",
+      "lineno": 28
+    },
+    {
+      "name": "PromptProfile",
+      "kind": "class",
+      "path": "prompt_distil/core/types.py",
+      "lineno": 50
+    },
+    {
+      "name": "Transcript",
+      "kind": "class",
+      "path": "prompt_distil/core/types.py",
+      "lineno": 60
+    },
+    {
+      "name": "SurfaceHint",
+      "kind": "class",
+      "path": "prompt_distil/core/types.py",
+      "lineno": 69
+    },
+    {
+      "name": "SpeechError",
+      "kind": "class",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 15
+    },
+    {
+      "name": "protect_code_identifiers",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 43
+    },
+    {
+      "name": "SpeechProcessor",
+      "kind": "class",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 85
+    },
+    {
+      "name": "transcribe_audio",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 194
+    },
+    {
+      "name": "should_protect",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 60
+    },
+    {
+      "name": "replace_identifier",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 76
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 93
+    },
+    {
+      "name": "transcribe_audio",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 97
+    },
+    {
+      "name": "validate_audio_format",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 149
+    },
+    {
+      "name": "get_audio_info",
+      "kind": "function",
+      "path": "prompt_distil/core/speech.py",
+      "lineno": 166
+    },
+    {
+      "name": "LLMMapError",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 15
+    },
+    {
+      "name": "Mapping",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 21
+    },
+    {
+      "name": "llm_map_symbols",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 40
+    },
+    {
+      "name": "_create_llm_system_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 107
+    },
+    {
+      "name": "_create_llm_user_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 139
+    },
+    {
+      "name": "filter_high_confidence_mappings",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 149
+    },
+    {
+      "name": "validate_mappings_against_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 163
+    },
+    {
+      "name": "merge_rule_and_llm_mappings",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 177
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 24
+    },
+    {
+      "name": "to_dict",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 30
+    },
+    {
+      "name": "from_dict",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 35
+    },
+    {
+      "name": "PromptRenderer",
+      "kind": "class",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 14
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 24
+    },
+    {
+      "name": "render",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 32
+    },
+    {
+      "name": "render_all",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 51
+    },
+    {
+      "name": "_render_short",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 63
+    },
+    {
+      "name": "_render_standard",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 93
+    },
+    {
+      "name": "_render_verbose",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 147
+    },
+    {
+      "name": "_format_entities",
+      "kind": "function",
+      "path": "prompt_distil/core/prompt.py",
+      "lineno": 234
+    },
+    {
+      "name": "SurfaceError",
+      "kind": "class",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 20
+    },
+    {
+      "name": "ProjectSurface",
+      "kind": "class",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 26
+    },
+    {
+      "name": "list_files",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 231
+    },
+    {
+      "name": "search_project",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 246
+    },
+    {
+      "name": "read_file",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 262
+    },
+    {
+      "name": "build_symbol_inventory",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 278
+    },
+    {
+      "name": "_should_include_file",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 358
+    },
+    {
+      "name": "_extract_python_symbols",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 375
+    },
+    {
+      "name": "save_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 398
+    },
+    {
+      "name": "load_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 407
+    },
+    {
+      "name": "ensure_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 421
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 34
+    },
+    {
+      "name": "list_files",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 46
+    },
+    {
+      "name": "search_project",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 76
+    },
+    {
+      "name": "read_file",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 147
+    },
+    {
+      "name": "get_project_structure",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 182
+    },
+    {
+      "name": "distill",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 35
+    },
+    {
+      "name": "from_audio",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 111
+    },
+    {
+      "name": "index",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 192
+    },
+    {
+      "name": "_display_distillation_result",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 264
+    },
+    {
+      "name": "load_builtin_lexicon",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 34
+    },
+    {
+      "name": "load_project_lexicon",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 73
+    },
+    {
+      "name": "merge_lexicons",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 110
+    },
+    {
+      "name": "detect_lang_fallback",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 126
+    },
+    {
+      "name": "list_available_lexicons",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 134
+    },
+    {
+      "name": "detect_language",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 145
+    },
+    {
+      "name": "detect_lang_fallback_simple",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 189
+    },
+    {
+      "name": "get_stemmer",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 211
+    },
+    {
+      "name": "stem_token",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 237
+    },
+    {
+      "name": "stem_tokens",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 259
+    },
+    {
+      "name": "tokenize_normalize",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 302
+    },
+    {
+      "name": "apply_lexicon_tokens",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 330
+    },
+    {
+      "name": "normalize_phrase_with_lexicon",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 381
+    },
+    {
+      "name": "generate_lexicon_aware_aliases",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 408
+    },
+    {
+      "name": "generate_stemmed_aliases",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 459
+    },
+    {
+      "name": "get_effective_language",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 503
+    },
+    {
+      "name": "tokenize_normalize_stem",
+      "kind": "function",
+      "path": "prompt_distil/core/lexicon.py",
+      "lineno": 274
+    },
+    {
+      "name": "camel_to_snake",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 27
+    },
+    {
+      "name": "generate_aliases",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 35
+    },
+    {
+      "name": "normalize_text",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 95
+    },
+    {
+      "name": "extract_ngrams",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 122
+    },
+    {
+      "name": "fuzzy_match_symbol",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 145
+    },
+    {
+      "name": "apply_context_rules",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 181
+    },
+    {
+      "name": "reconcile_text",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 223
+    },
+    {
+      "name": "_process_rules_based",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 286
+    },
+    {
+      "name": "_process_llm_based",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 372
+    },
+    {
+      "name": "_extract_unresolved_terms",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 406
+    },
+    {
+      "name": "_find_original_case",
+      "kind": "function",
+      "path": "prompt_distil/core/reconcile.py",
+      "lineno": 430
+    },
+    {
+      "name": "DistillationError",
+      "kind": "class",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 19
+    },
+    {
+      "name": "TranscriptDistiller",
+      "kind": "class",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 25
+    },
+    {
+      "name": "build_ir_lite",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 465
+    },
+    {
+      "name": "render_prompts",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 489
+    },
+    {
+      "name": "distill_transcript",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 503
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 35
+    },
+    {
+      "name": "build_ir_lite",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 48
+    },
+    {
+      "name": "render_prompts",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 125
+    },
+    {
+      "name": "distill_complete",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 137
+    },
+    {
+      "name": "_prepare_compact_hints",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 174
+    },
+    {
+      "name": "_create_system_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 203
+    },
+    {
+      "name": "_create_user_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 261
+    },
+    {
+      "name": "_format_compact_hints",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 270
+    },
+    {
+      "name": "_gather_surface_hints",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 291
+    },
+    {
+      "name": "_format_surface_hints",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 314
+    },
+    {
+      "name": "_create_session_passport",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 337
+    },
+    {
+      "name": "_extract_preserved_identifiers",
+      "kind": "function",
+      "path": "prompt_distil/core/distill.py",
+      "lineno": 423
+    },
+    {
+      "name": "TestTypes",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 17
+    },
+    {
+      "name": "TestPromptRenderer",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 56
+    },
+    {
+      "name": "TestConfig",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 143
+    },
+    {
+      "name": "TestProjectSurface",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 161
+    },
+    {
+      "name": "TestCodeIdentifierProtection",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 213
+    },
+    {
+      "name": "TestSymbolCache",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 278
+    },
+    {
+      "name": "TestProjectRootIntegration",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 438
+    },
+    {
+      "name": "TestMultilingualLexicon",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 559
+    },
+    {
+      "name": "test_known_entity_creation",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 20
+    },
+    {
+      "name": "test_known_entity_minimal",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 27
+    },
+    {
+      "name": "test_ir_lite_creation",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 34
+    },
+    {
+      "name": "test_ir_lite_minimal",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 43
+    },
+    {
+      "name": "test_renderer_initialization",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 59
+    },
+    {
+      "name": "test_render_short_profile",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 66
+    },
+    {
+      "name": "test_render_standard_profile",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 78
+    },
+    {
+      "name": "test_render_verbose_profile",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 91
+    },
+    {
+      "name": "test_render_all_profiles",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 105
+    },
+    {
+      "name": "test_invalid_profile",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 116
+    },
+    {
+      "name": "test_format_entities_compact",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 124
+    },
+    {
+      "name": "test_format_entities_detailed",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 133
+    },
+    {
+      "name": "test_config_initialization",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 146
+    },
+    {
+      "name": "test_default_models",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 151
+    },
+    {
+      "name": "test_surface_initialization_current_dir",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 164
+    },
+    {
+      "name": "test_list_files_basic",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 169
+    },
+    {
+      "name": "test_get_project_structure",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 178
+    },
+    {
+      "name": "test_validate_audio_format",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 189
+    },
+    {
+      "name": "test_transcript_type",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 200
+    },
+    {
+      "name": "test_protect_code_identifiers_with_underscores",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 216
+    },
+    {
+      "name": "test_protect_code_identifiers_whitelist",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 226
+    },
+    {
+      "name": "test_protect_code_identifiers_already_protected",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 236
+    },
+    {
+      "name": "test_protect_code_identifiers_mixed_case",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 246
+    },
+    {
+      "name": "test_protect_code_identifiers_no_matches",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 255
+    },
+    {
+      "name": "test_target_language_support",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 263
+    },
+    {
+      "name": "test_camel_to_snake",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 281
+    },
+    {
+      "name": "test_generate_aliases",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 291
+    },
+    {
+      "name": "test_normalize_text",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 308
+    },
+    {
+      "name": "test_fuzzy_match_symbol",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 318
+    },
+    {
+      "name": "test_reconcile_text_basic",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 340
+    },
+    {
+      "name": "test_reconcile_text_context_rules",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 371
+    },
+    {
+      "name": "test_cache_structure",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 397
+    },
+    {
+      "name": "test_project_root_cache_path",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 441
+    },
+    {
+      "name": "test_safe_reconciliation_with_cache",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 470
+    },
+    {
+      "name": "test_safe_reconciliation_without_cache",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 503
+    },
+    {
+      "name": "test_related_section_no_placeholders",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 520
+    },
+    {
+      "name": "test_project_root_parameter_passing",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 543
+    },
+    {
+      "name": "test_stemming_functionality",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 562
+    },
+    {
+      "name": "test_lex_mode_rules_only",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 582
+    },
+    {
+      "name": "test_lex_mode_hybrid",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 608
+    },
+    {
+      "name": "test_load_builtin_lexicon",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 636
+    },
+    {
+      "name": "test_detect_lang_fallback",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 656
+    },
+    {
+      "name": "test_tokenize_normalize",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 672
+    },
+    {
+      "name": "test_apply_lexicon_tokens",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 684
+    },
+    {
+      "name": "test_normalize_phrase_with_lexicon",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 695
+    },
+    {
+      "name": "test_lexicon_aware_reconciliation",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 712
+    },
+    {
+      "name": "test_get_effective_language",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 740
     }
   ],
   "inverted_index": {
-    "delete_task": [
-      "test_tasks.py#L1"
+    "ConfigError": [
+      "prompt_distil/core/config.py#L15"
     ],
-    "login_handler": [
-      "test_auth.py#L1"
+    "load_config": [
+      "prompt_distil/core/config.py#L22"
+    ],
+    "Config": [
+      "prompt_distil/core/config.py#L27"
+    ],
+    "get_client": [
+      "prompt_distil/core/config.py#L67"
+    ],
+    "validate_config": [
+      "prompt_distil/core/config.py#L89"
+    ],
+    "__init__": [
+      "prompt_distil/core/config.py#L30",
+      "prompt_distil/core/speech.py#L93",
+      "prompt_distil/core/llm_map.py#L24",
+      "prompt_distil/core/prompt.py#L24",
+      "prompt_distil/core/surface.py#L34",
+      "prompt_distil/core/distill.py#L35"
+    ],
+    "openai_api_key": [
+      "prompt_distil/core/config.py#L34"
+    ],
+    "distil_model": [
+      "prompt_distil/core/config.py#L42"
+    ],
+    "asr_model": [
+      "prompt_distil/core/config.py#L47"
+    ],
+    "openai_timeout": [
+      "prompt_distil/core/config.py#L52"
+    ],
+    "max_retries": [
+      "prompt_distil/core/config.py#L57"
+    ],
+    "KnownEntity": [
+      "prompt_distil/core/types.py#L13"
+    ],
+    "IRLite": [
+      "prompt_distil/core/types.py#L28"
+    ],
+    "PromptProfile": [
+      "prompt_distil/core/types.py#L50"
+    ],
+    "Transcript": [
+      "prompt_distil/core/types.py#L60"
+    ],
+    "SurfaceHint": [
+      "prompt_distil/core/types.py#L69"
+    ],
+    "SpeechError": [
+      "prompt_distil/core/speech.py#L15"
+    ],
+    "protect_code_identifiers": [
+      "prompt_distil/core/speech.py#L43"
+    ],
+    "SpeechProcessor": [
+      "prompt_distil/core/speech.py#L85"
+    ],
+    "transcribe_audio": [
+      "prompt_distil/core/speech.py#L194",
+      "prompt_distil/core/speech.py#L97"
+    ],
+    "should_protect": [
+      "prompt_distil/core/speech.py#L60"
+    ],
+    "replace_identifier": [
+      "prompt_distil/core/speech.py#L76"
+    ],
+    "validate_audio_format": [
+      "prompt_distil/core/speech.py#L149"
+    ],
+    "get_audio_info": [
+      "prompt_distil/core/speech.py#L166"
+    ],
+    "LLMMapError": [
+      "prompt_distil/core/llm_map.py#L15"
+    ],
+    "Mapping": [
+      "prompt_distil/core/llm_map.py#L21"
+    ],
+    "llm_map_symbols": [
+      "prompt_distil/core/llm_map.py#L40"
+    ],
+    "_create_llm_system_prompt": [
+      "prompt_distil/core/llm_map.py#L107"
+    ],
+    "_create_llm_user_prompt": [
+      "prompt_distil/core/llm_map.py#L139"
+    ],
+    "filter_high_confidence_mappings": [
+      "prompt_distil/core/llm_map.py#L149"
+    ],
+    "validate_mappings_against_cache": [
+      "prompt_distil/core/llm_map.py#L163"
+    ],
+    "merge_rule_and_llm_mappings": [
+      "prompt_distil/core/llm_map.py#L177"
+    ],
+    "to_dict": [
+      "prompt_distil/core/llm_map.py#L30"
+    ],
+    "from_dict": [
+      "prompt_distil/core/llm_map.py#L35"
+    ],
+    "PromptRenderer": [
+      "prompt_distil/core/prompt.py#L14"
+    ],
+    "render": [
+      "prompt_distil/core/prompt.py#L32"
+    ],
+    "render_all": [
+      "prompt_distil/core/prompt.py#L51"
+    ],
+    "_render_short": [
+      "prompt_distil/core/prompt.py#L63"
+    ],
+    "_render_standard": [
+      "prompt_distil/core/prompt.py#L93"
+    ],
+    "_render_verbose": [
+      "prompt_distil/core/prompt.py#L147"
+    ],
+    "_format_entities": [
+      "prompt_distil/core/prompt.py#L234"
+    ],
+    "SurfaceError": [
+      "prompt_distil/core/surface.py#L20"
+    ],
+    "ProjectSurface": [
+      "prompt_distil/core/surface.py#L26"
+    ],
+    "list_files": [
+      "prompt_distil/core/surface.py#L231",
+      "prompt_distil/core/surface.py#L46"
+    ],
+    "search_project": [
+      "prompt_distil/core/surface.py#L246",
+      "prompt_distil/core/surface.py#L76"
+    ],
+    "read_file": [
+      "prompt_distil/core/surface.py#L262",
+      "prompt_distil/core/surface.py#L147"
+    ],
+    "build_symbol_inventory": [
+      "prompt_distil/core/surface.py#L278"
+    ],
+    "_should_include_file": [
+      "prompt_distil/core/surface.py#L358"
+    ],
+    "_extract_python_symbols": [
+      "prompt_distil/core/surface.py#L375"
+    ],
+    "save_cache": [
+      "prompt_distil/core/surface.py#L398"
+    ],
+    "load_cache": [
+      "prompt_distil/core/surface.py#L407"
+    ],
+    "ensure_cache": [
+      "prompt_distil/core/surface.py#L421"
+    ],
+    "get_project_structure": [
+      "prompt_distil/core/surface.py#L182"
+    ],
+    "distill": [
+      "prompt_distil/main.py#L35"
+    ],
+    "from_audio": [
+      "prompt_distil/main.py#L111"
+    ],
+    "index": [
+      "prompt_distil/main.py#L192"
+    ],
+    "_display_distillation_result": [
+      "prompt_distil/main.py#L264"
+    ],
+    "load_builtin_lexicon": [
+      "prompt_distil/core/lexicon.py#L34"
+    ],
+    "load_project_lexicon": [
+      "prompt_distil/core/lexicon.py#L73"
+    ],
+    "merge_lexicons": [
+      "prompt_distil/core/lexicon.py#L110"
+    ],
+    "detect_lang_fallback": [
+      "prompt_distil/core/lexicon.py#L126"
+    ],
+    "list_available_lexicons": [
+      "prompt_distil/core/lexicon.py#L134"
+    ],
+    "detect_language": [
+      "prompt_distil/core/lexicon.py#L145"
+    ],
+    "detect_lang_fallback_simple": [
+      "prompt_distil/core/lexicon.py#L189"
+    ],
+    "get_stemmer": [
+      "prompt_distil/core/lexicon.py#L211"
+    ],
+    "stem_token": [
+      "prompt_distil/core/lexicon.py#L237"
+    ],
+    "stem_tokens": [
+      "prompt_distil/core/lexicon.py#L259"
+    ],
+    "tokenize_normalize": [
+      "prompt_distil/core/lexicon.py#L302"
+    ],
+    "apply_lexicon_tokens": [
+      "prompt_distil/core/lexicon.py#L330"
+    ],
+    "normalize_phrase_with_lexicon": [
+      "prompt_distil/core/lexicon.py#L381"
+    ],
+    "generate_lexicon_aware_aliases": [
+      "prompt_distil/core/lexicon.py#L408"
+    ],
+    "generate_stemmed_aliases": [
+      "prompt_distil/core/lexicon.py#L459"
+    ],
+    "get_effective_language": [
+      "prompt_distil/core/lexicon.py#L503"
+    ],
+    "tokenize_normalize_stem": [
+      "prompt_distil/core/lexicon.py#L274"
+    ],
+    "camel_to_snake": [
+      "prompt_distil/core/reconcile.py#L27"
+    ],
+    "generate_aliases": [
+      "prompt_distil/core/reconcile.py#L35"
+    ],
+    "normalize_text": [
+      "prompt_distil/core/reconcile.py#L95"
+    ],
+    "extract_ngrams": [
+      "prompt_distil/core/reconcile.py#L122"
+    ],
+    "fuzzy_match_symbol": [
+      "prompt_distil/core/reconcile.py#L145"
+    ],
+    "apply_context_rules": [
+      "prompt_distil/core/reconcile.py#L181"
+    ],
+    "reconcile_text": [
+      "prompt_distil/core/reconcile.py#L223"
+    ],
+    "_process_rules_based": [
+      "prompt_distil/core/reconcile.py#L286"
+    ],
+    "_process_llm_based": [
+      "prompt_distil/core/reconcile.py#L372"
+    ],
+    "_extract_unresolved_terms": [
+      "prompt_distil/core/reconcile.py#L406"
+    ],
+    "_find_original_case": [
+      "prompt_distil/core/reconcile.py#L430"
+    ],
+    "DistillationError": [
+      "prompt_distil/core/distill.py#L19"
+    ],
+    "TranscriptDistiller": [
+      "prompt_distil/core/distill.py#L25"
+    ],
+    "build_ir_lite": [
+      "prompt_distil/core/distill.py#L465",
+      "prompt_distil/core/distill.py#L48"
+    ],
+    "render_prompts": [
+      "prompt_distil/core/distill.py#L489",
+      "prompt_distil/core/distill.py#L125"
+    ],
+    "distill_transcript": [
+      "prompt_distil/core/distill.py#L503"
+    ],
+    "distill_complete": [
+      "prompt_distil/core/distill.py#L137"
+    ],
+    "_prepare_compact_hints": [
+      "prompt_distil/core/distill.py#L174"
+    ],
+    "_create_system_prompt": [
+      "prompt_distil/core/distill.py#L203"
+    ],
+    "_create_user_prompt": [
+      "prompt_distil/core/distill.py#L261"
+    ],
+    "_format_compact_hints": [
+      "prompt_distil/core/distill.py#L270"
+    ],
+    "_gather_surface_hints": [
+      "prompt_distil/core/distill.py#L291"
+    ],
+    "_format_surface_hints": [
+      "prompt_distil/core/distill.py#L314"
+    ],
+    "_create_session_passport": [
+      "prompt_distil/core/distill.py#L337"
+    ],
+    "_extract_preserved_identifiers": [
+      "prompt_distil/core/distill.py#L423"
+    ],
+    "TestTypes": [
+      "tests/test_basic.py#L17"
+    ],
+    "TestPromptRenderer": [
+      "tests/test_basic.py#L56"
+    ],
+    "TestConfig": [
+      "tests/test_basic.py#L143"
+    ],
+    "TestProjectSurface": [
+      "tests/test_basic.py#L161"
+    ],
+    "TestCodeIdentifierProtection": [
+      "tests/test_basic.py#L213"
+    ],
+    "TestSymbolCache": [
+      "tests/test_basic.py#L278"
+    ],
+    "TestProjectRootIntegration": [
+      "tests/test_basic.py#L438"
+    ],
+    "TestMultilingualLexicon": [
+      "tests/test_basic.py#L559"
+    ],
+    "test_known_entity_creation": [
+      "tests/test_basic.py#L20"
+    ],
+    "test_known_entity_minimal": [
+      "tests/test_basic.py#L27"
+    ],
+    "test_ir_lite_creation": [
+      "tests/test_basic.py#L34"
+    ],
+    "test_ir_lite_minimal": [
+      "tests/test_basic.py#L43"
+    ],
+    "test_renderer_initialization": [
+      "tests/test_basic.py#L59"
+    ],
+    "test_render_short_profile": [
+      "tests/test_basic.py#L66"
+    ],
+    "test_render_standard_profile": [
+      "tests/test_basic.py#L78"
+    ],
+    "test_render_verbose_profile": [
+      "tests/test_basic.py#L91"
+    ],
+    "test_render_all_profiles": [
+      "tests/test_basic.py#L105"
+    ],
+    "test_invalid_profile": [
+      "tests/test_basic.py#L116"
+    ],
+    "test_format_entities_compact": [
+      "tests/test_basic.py#L124"
+    ],
+    "test_format_entities_detailed": [
+      "tests/test_basic.py#L133"
+    ],
+    "test_config_initialization": [
+      "tests/test_basic.py#L146"
+    ],
+    "test_default_models": [
+      "tests/test_basic.py#L151"
+    ],
+    "test_surface_initialization_current_dir": [
+      "tests/test_basic.py#L164"
+    ],
+    "test_list_files_basic": [
+      "tests/test_basic.py#L169"
+    ],
+    "test_get_project_structure": [
+      "tests/test_basic.py#L178"
+    ],
+    "test_validate_audio_format": [
+      "tests/test_basic.py#L189"
+    ],
+    "test_transcript_type": [
+      "tests/test_basic.py#L200"
+    ],
+    "test_protect_code_identifiers_with_underscores": [
+      "tests/test_basic.py#L216"
+    ],
+    "test_protect_code_identifiers_whitelist": [
+      "tests/test_basic.py#L226"
+    ],
+    "test_protect_code_identifiers_already_protected": [
+      "tests/test_basic.py#L236"
+    ],
+    "test_protect_code_identifiers_mixed_case": [
+      "tests/test_basic.py#L246"
+    ],
+    "test_protect_code_identifiers_no_matches": [
+      "tests/test_basic.py#L255"
+    ],
+    "test_target_language_support": [
+      "tests/test_basic.py#L263"
+    ],
+    "test_camel_to_snake": [
+      "tests/test_basic.py#L281"
+    ],
+    "test_generate_aliases": [
+      "tests/test_basic.py#L291"
+    ],
+    "test_normalize_text": [
+      "tests/test_basic.py#L308"
+    ],
+    "test_fuzzy_match_symbol": [
+      "tests/test_basic.py#L318"
+    ],
+    "test_reconcile_text_basic": [
+      "tests/test_basic.py#L340"
+    ],
+    "test_reconcile_text_context_rules": [
+      "tests/test_basic.py#L371"
+    ],
+    "test_cache_structure": [
+      "tests/test_basic.py#L397"
+    ],
+    "test_project_root_cache_path": [
+      "tests/test_basic.py#L441"
+    ],
+    "test_safe_reconciliation_with_cache": [
+      "tests/test_basic.py#L470"
+    ],
+    "test_safe_reconciliation_without_cache": [
+      "tests/test_basic.py#L503"
+    ],
+    "test_related_section_no_placeholders": [
+      "tests/test_basic.py#L520"
+    ],
+    "test_project_root_parameter_passing": [
+      "tests/test_basic.py#L543"
+    ],
+    "test_stemming_functionality": [
+      "tests/test_basic.py#L562"
+    ],
+    "test_lex_mode_rules_only": [
+      "tests/test_basic.py#L582"
+    ],
+    "test_lex_mode_hybrid": [
+      "tests/test_basic.py#L608"
+    ],
+    "test_load_builtin_lexicon": [
+      "tests/test_basic.py#L636"
+    ],
+    "test_detect_lang_fallback": [
+      "tests/test_basic.py#L656"
+    ],
+    "test_tokenize_normalize": [
+      "tests/test_basic.py#L672"
+    ],
+    "test_apply_lexicon_tokens": [
+      "tests/test_basic.py#L684"
+    ],
+    "test_normalize_phrase_with_lexicon": [
+      "tests/test_basic.py#L695"
+    ],
+    "test_lexicon_aware_reconciliation": [
+      "tests/test_basic.py#L712"
+    ],
+    "test_get_effective_language": [
+      "tests/test_basic.py#L740"
     ]
   }
 }

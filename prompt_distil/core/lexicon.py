@@ -8,6 +8,7 @@ which are then used in symbol matching. Supports builtin lexicons and per-projec
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
@@ -31,6 +32,7 @@ STEMMER_LANGUAGES = {"en", "ru", "es"}
 NEUTRAL_ANCHORS = {"test", "login", "logging"}
 
 
+@lru_cache(maxsize=32)
 def load_builtin_lexicon(lang: str) -> Dict[str, List[str]]:
     """
     Load JSON from package data: data/lexicons/{lang}.json if present, else {}.
@@ -81,8 +83,14 @@ def load_project_lexicon(project_root: Union[str, Path], lang: str) -> Dict[str,
     Returns:
         Dictionary mapping source language terms to English anchor lists
     """
+    return _load_project_lexicon_cached(str(project_root), lang)
+
+
+@lru_cache(maxsize=128)
+def _load_project_lexicon_cached(project_root_str: str, lang: str) -> Dict[str, List[str]]:
+    """Cached implementation of load_project_lexicon."""
     try:
-        root_path = Path(project_root)
+        root_path = Path(project_root_str)
         lexicon_path = root_path / ".prompt_distil" / "lexicon" / f"{lang}.json"
 
         if not lexicon_path.exists():
@@ -208,6 +216,7 @@ def detect_lang_fallback_simple(text: str) -> str:
     return "en"
 
 
+@lru_cache(maxsize=16)
 def get_stemmer(lang: str):
     """
     Get a SnowballStemmer for the specified language.
@@ -234,6 +243,7 @@ def get_stemmer(lang: str):
         return None
 
 
+@lru_cache(maxsize=1024)
 def stem_token(token: str, lang: str) -> str:
     """
     Stem a single token using the appropriate stemmer.
@@ -417,10 +427,16 @@ def generate_lexicon_aware_aliases(phrase: str, lang: str, project_root: Union[s
     Returns:
         List of alias variations
     """
+    return _generate_lexicon_aware_aliases_cached(phrase, lang, str(project_root))
+
+
+@lru_cache(maxsize=512)
+def _generate_lexicon_aware_aliases_cached(phrase: str, lang: str, project_root_str: str) -> List[str]:
+    """Cached implementation of generate_lexicon_aware_aliases."""
     aliases = [phrase]  # Include original
 
     # Get normalized version
-    normalized, _, _ = normalize_phrase_with_lexicon(phrase, lang, project_root)
+    normalized, _, _ = normalize_phrase_with_lexicon(phrase, lang, project_root_str)
     if normalized != phrase:
         aliases.append(normalized)
 
@@ -456,6 +472,7 @@ def generate_lexicon_aware_aliases(phrase: str, lang: str, project_root: Union[s
     return unique_aliases
 
 
+@lru_cache(maxsize=512)
 def generate_stemmed_aliases(phrase: str, lang: str) -> List[str]:
     """
     Generate stemmed variations of a phrase for improved matching.

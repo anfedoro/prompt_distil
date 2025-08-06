@@ -11,6 +11,7 @@ dependencies = [
     "python-dotenv",
     "rich",
     "snowballstemmer>=3.0.1",
+    "rapidfuzz",
 ]
 
 [project.scripts]
@@ -21,7 +22,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv]
-dev-dependencies = [
-    "pytest",
-    "pytest-asyncio",
-]
+dev-dependencies = ["pytest", "pytest-asyncio"]

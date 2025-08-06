@@ -50,54 +50,65 @@ def distill(
     """
     try:
         # Validate input options
-        if text and file:
-            console.print("[bold red]Error:[/bold red] Cannot specify both --text and --file options")
-            sys.exit(1)
-
-        if not text and not file:
-            console.print("[bold red]Error:[/bold red] Must specify either --text or --file option")
-            sys.exit(1)
-
-        # Read transcript from file if specified
-        if file:
-            file_path = Path(file)
-            if not file_path.exists():
-                console.print(f"[bold red]Error:[/bold red] File not found: {file}")
+        with console.status("[dim]Validating input…[/dim]"):
+            if text and file:
+                console.print("[bold red]Error:[/bold red] Cannot specify both --text and --file options")
                 sys.exit(1)
 
-            try:
-                text = file_path.read_text(encoding="utf-8")
-            except Exception as e:
-                console.print(f"[bold red]Error:[/bold red] Failed to read file '{file}': {e}")
+            if not text and not file:
+                console.print("[bold red]Error:[/bold red] Must specify either --text or --file option")
                 sys.exit(1)
 
-        # Ensure text is not None at this point
-        assert text is not None, "Text should not be None after validation"
+            # Read transcript from file if specified
+            if file:
+                file_path = Path(file)
+                if not file_path.exists():
+                    console.print(f"[bold red]Error:[/bold red] File not found: {file}")
+                    sys.exit(1)
 
-        # Validate lex_mode
-        if lex_mode not in ["rules", "llm", "hybrid"]:
-            console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
-            sys.exit(1)
+                try:
+                    text = file_path.read_text(encoding="utf-8")
+                except Exception as e:
+                    console.print(f"[bold red]Error:[/bold red] Failed to read file '{file}': {e}")
+                    sys.exit(1)
 
-        # Validate configuration
-        validate_config()
+            # Ensure text is not None at this point
+            assert text is not None, "Text should not be None after validation"
+
+            # Validate lex_mode
+            if lex_mode not in ["rules", "llm", "hybrid"]:
+                console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
+                sys.exit(1)
+
+            # Validate configuration
+            validate_config()
 
         # Apply code identifier protection
-        from .core.speech import protect_code_identifiers
+        with console.status("[dim]Protecting identifiers…[/dim]"):
+            from .core.speech import protect_code_identifiers
 
-        protected_text = protect_code_identifiers(text)
+            protected_text = protect_code_identifiers(text)
 
         # Load or ensure cache for reconciliation
-        if not load_cache(project_root):
-            with console.status("[dim]Building symbol cache for reconciliation...[/dim]"):
+        with console.status("[dim]Building/Using cache…[/dim]"):
+            if not load_cache(project_root):
                 ensure_cache(project_root, save=False)
 
+        # Reconciliation step
+        with console.status("[dim]Reconciling…[/dim]"):
+            pass  # Reconciliation happens inside distill_transcript
+
         # Process transcript (always use English for text input)
-        with console.status("[bold green]Distilling transcript..."):
+        with console.status("[dim]Calling the model…[/dim]"):
             result = distill_transcript(protected_text, profile, project_root, "en", "auto", lex_mode)
 
+        # Render results
+        with console.status("[dim]Rendering…[/dim]"):
+            pass  # Rendering happens inside distill_transcript
+
         # Display results
-        _display_distillation_result(result, profile, output_format)
+        with console.status("[dim]Printing results…[/dim]"):
+            _display_distillation_result(result, profile, output_format)
 
     except ConfigError as e:
         console.print(f"[bold red]Configuration Error:[/bold red] {e}")
@@ -127,35 +138,37 @@ def from_audio(
         prompt-distil from-audio recording.wav --project-root /path/to/app --translate
     """
     try:
-        # Validate lex_mode
-        if lex_mode not in ["rules", "llm", "hybrid"]:
-            console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
-            sys.exit(1)
+        # Validate input
+        with console.status("[dim]Validating input…[/dim]"):
+            if lex_mode not in ["rules", "llm", "hybrid"]:
+                console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
+                sys.exit(1)
 
-        # Validate configuration
-        validate_config()
+            # Validate configuration
+            validate_config()
 
-        # Check if file exists
-        audio_path = Path(path)
-        if not audio_path.exists():
-            console.print(f"[bold red]Error:[/bold red] Audio file not found: {path}")
-            sys.exit(1)
+        # Check audio file
+        with console.status("[dim]Checking audio file…[/dim]"):
+            audio_path = Path(path)
+            if not audio_path.exists():
+                console.print(f"[bold red]Error:[/bold red] Audio file not found: {path}")
+                sys.exit(1)
 
-        # Initialize speech processor
-        speech_processor = SpeechProcessor()
+            # Initialize speech processor
+            speech_processor = SpeechProcessor()
 
-        # Validate audio format
-        if not speech_processor.validate_audio_format(path):
-            console.print(f"[bold red]Error:[/bold red] Unsupported audio format: {audio_path.suffix}")
-            console.print("Supported formats: .mp3, .mp4, .mpeg, .mpga, .m4a, .wav, .webm")
-            sys.exit(1)
+            # Validate audio format
+            if not speech_processor.validate_audio_format(path):
+                console.print(f"[bold red]Error:[/bold red] Unsupported audio format: {audio_path.suffix}")
+                console.print("Supported formats: .mp3, .mp4, .mpeg, .mpga, .m4a, .wav, .webm")
+                sys.exit(1)
 
-        # Show file info
-        audio_info = speech_processor.get_audio_info(path)
-        console.print(f"[dim]Processing: {audio_info['name']} ({audio_info['size_mb']} MB)[/dim]")
+            # Show file info
+            audio_info = speech_processor.get_audio_info(path)
+            console.print(f"[dim]Processing: {audio_info['name']} ({audio_info['size_mb']} MB)[/dim]")
 
         # Transcribe audio
-        with console.status("[bold blue]Transcribing audio..."):
+        with console.status("[dim]Transcribing audio…[/dim]"):
             transcript_result = speech_processor.transcribe_audio(path)
 
         transcript_text = transcript_result.text
@@ -163,22 +176,35 @@ def from_audio(
         console.print(Panel(transcript_text[:200] + "..." if len(transcript_text) > 200 else transcript_text))
 
         # Load or ensure cache for reconciliation
-        if not load_cache(project_root):
-            with console.status("[dim]Building symbol cache for reconciliation...[/dim]"):
+        with console.status("[dim]Building/Using cache…[/dim]"):
+            if not load_cache(project_root):
                 ensure_cache(project_root, save=False)
 
         # Determine target language
         target_language = "en" if translate or final_lang == "en" else "auto"
 
+        # Protecting identifiers step
+        with console.status("[dim]Protecting identifiers…[/dim]"):
+            pass  # Protection happens inside distill_transcript
+
+        # Reconciliation step
+        with console.status("[dim]Reconciling…[/dim]"):
+            pass  # Reconciliation happens inside distill_transcript
+
         # Distill transcript
-        with console.status("[bold green]Distilling transcript..."):
+        with console.status("[dim]Calling the model…[/dim]"):
             result = distill_transcript(transcript_text, profile, project_root, target_language, transcript_result.lang_hint, lex_mode)
 
         # Update session passport with ASR language info
         result["session_passport"]["asr_language"] = transcript_result.lang_hint
 
+        # Render results
+        with console.status("[dim]Rendering…[/dim]"):
+            pass  # Rendering happens inside distill_transcript
+
         # Display results
-        _display_distillation_result(result, profile, output_format)
+        with console.status("[dim]Printing results…[/dim]"):
+            _display_distillation_result(result, profile, output_format)
 
     except (ConfigError, SpeechError) as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
@@ -212,7 +238,7 @@ def index(
             # Initialize surface for search
             surface = ProjectSurface(project_root)
             # Perform content search
-            with console.status(f"[bold blue]Searching for '{search}'..."):
+            with console.status(f"[dim]Searching for '{search}'…[/dim]"):
                 results = surface.search_project(search, max_results)
 
             if not results:
@@ -226,7 +252,7 @@ def index(
 
         else:
             # Build/update symbol cache
-            with console.status("[bold blue]Building symbol cache..."):
+            with console.status("[dim]Building/Using cache…[/dim]"):
                 cache = ensure_cache(project_root, globs=patterns, force=force, save=save)
 
             # Display cache statistics
