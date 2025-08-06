@@ -67,8 +67,10 @@ def llm_map_symbols(transcript: str, candidate_symbols: List[str], max_candidate
     try:
         from .progress import reporter
 
-        reporter.step_with_context("Calling the model", "for reconciliation")
+        reporter.sub_step_with_progress("Processing with LLM-based matching", f"preparing LLM request for {len(candidate_symbols)} symbols", 1, 3)
         client = get_client()
+
+        reporter.sub_step_with_progress("Processing with LLM-based matching", "calling LLM for symbol mapping", 2, 3)
         response = client.chat.completions.create(
             model=config.distil_model,
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
@@ -82,6 +84,7 @@ def llm_map_symbols(transcript: str, candidate_symbols: List[str], max_candidate
             return []
 
         # Parse JSON response
+        reporter.sub_step_with_progress("Processing with LLM-based matching", "parsing LLM response", 3, 3)
         try:
             data = json.loads(content)
             mappings = []
@@ -105,6 +108,92 @@ def llm_map_symbols(transcript: str, candidate_symbols: List[str], max_candidate
 
     except Exception as e:
         raise LLMMapError(f"LLM symbol mapping failed: {e}")
+
+
+def llm_preprocess_text(transcript: str, candidate_symbols: List[str]) -> str:
+    """
+    Use LLM to preprocess text by marking potential symbols with backticks.
+
+    This is optimized for hybrid mode where LLM runs first with filtered symbols,
+    then rules process only the marked content.
+
+    Args:
+        transcript: Original transcript text
+        candidate_symbols: Filtered list of relevant project symbols
+
+    Returns:
+        Text with potential symbols marked with backticks
+
+    Raises:
+        LLMMapError: If LLM call fails
+    """
+    if not transcript.strip() or not candidate_symbols:
+        return transcript
+
+    # Create specialized prompts for preprocessing
+    system_prompt = _create_preprocessing_system_prompt(candidate_symbols)
+    user_prompt = _create_preprocessing_user_prompt(transcript)
+
+    try:
+        from .progress import reporter
+
+        reporter.sub_step_with_progress("LLM preprocessing", "analyzing text for potential symbols", 1, 2)
+        client = get_client()
+
+        response = client.chat.completions.create(
+            model=config.distil_model,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            temperature=0.1,  # Low temperature for consistent marking
+            max_tokens=2000,  # Allow for longer responses with marked text
+        )
+
+        content = response.choices[0].message.content
+        if not content:
+            return transcript
+
+        reporter.sub_step_with_progress("LLM preprocessing", "extracting marked text", 2, 2)
+        return content.strip()
+
+    except Exception:
+        # If LLM preprocessing fails, return original text
+        return transcript
+
+
+def _create_preprocessing_system_prompt(candidate_symbols: List[str]) -> str:
+    """Create system prompt for LLM text preprocessing."""
+    symbols_text = ", ".join(f"`{symbol}`" for symbol in candidate_symbols[:30])  # Show first 30
+    if len(candidate_symbols) > 30:
+        symbols_text += f" ... and {len(candidate_symbols) - 30} more"
+
+    return f"""You are an expert at identifying code symbols in natural language text.
+
+Your task is to read a transcript and mark any phrases that likely refer to these project symbols with backticks.
+
+AVAILABLE SYMBOLS: {symbols_text}
+
+INSTRUCTIONS:
+1. Read the transcript carefully
+2. Identify phrases that might refer to the symbols above
+3. Mark ONLY those phrases with backticks (e.g., `symbol_name`)
+4. Consider variations: snake_case ↔ CamelCase, plurals, verb forms, spaces
+5. Preserve all other text exactly as written
+6. If unsure, don't mark it
+
+Examples:
+- "update delete task" → "update `delete_task`" (if delete_task is in symbols)
+- "login handler function" → "`login_handler` function" (if login_handler is in symbols)
+- "some random text" → "some random text" (no matching symbols)
+
+Return the complete text with appropriate symbols marked with backticks."""
+
+
+def _create_preprocessing_user_prompt(transcript: str) -> str:
+    """Create user prompt for LLM text preprocessing."""
+    return f"""Mark potential code symbols in this transcript with backticks:
+
+{transcript}
+
+Return the complete text with symbols marked."""
 
 
 def _create_llm_system_prompt(candidate_symbols: List[str]) -> str:

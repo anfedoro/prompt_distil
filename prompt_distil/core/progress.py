@@ -86,6 +86,36 @@ class ProgressReporter:
         full_message = f"{message} {context}".strip()
         self.step(full_message)
 
+    def sub_step(self, message: str, current: int = 0, total: int = 0) -> None:
+        """
+        Update progress with sub-step information without marking previous step as completed.
+
+        Args:
+            message: Sub-step message to display
+            current: Current step number (optional)
+            total: Total number of steps (optional)
+        """
+        if self._status is not None:
+            if current > 0 and total > 0:
+                progress_msg = f"{message} ({current}/{total})"
+            else:
+                progress_msg = message
+            self._status.update(f"[dim]{progress_msg}[/dim]")
+
+    def sub_step_with_progress(self, base_message: str, sub_message: str, current: int, total: int) -> None:
+        """
+        Update progress with hierarchical sub-step information.
+
+        Args:
+            base_message: Main step message
+            sub_message: Sub-step description
+            current: Current sub-step number
+            total: Total number of sub-steps
+        """
+        if self._status is not None:
+            full_message = f"{base_message} - {sub_message} ({current}/{total})"
+            self._status.update(f"[dim]{full_message}[/dim]")
+
     def is_active(self) -> bool:
         """
         Check if the reporter is currently active.

@@ -35,6 +35,55 @@ def camel_to_snake(name: str) -> str:
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
+def _filter_relevant_symbols(text: str, known_symbols: Dict[str, Dict], max_symbols: int = 50) -> List[str]:
+    """
+    Filter project symbols to most relevant ones for LLM processing.
+
+    Args:
+        text: Input text to analyze
+        known_symbols: Dictionary of all known symbols
+        max_symbols: Maximum number of symbols to return
+
+    Returns:
+        List of most relevant symbol names
+    """
+    # Extract potential identifier-like words from text
+    identifier_words = re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b", text.lower())
+
+    # Score symbols based on similarity to words in text
+    symbol_scores = {}
+
+    for symbol_name in known_symbols.keys():
+        score = 0
+        symbol_lower = symbol_name.lower()
+
+        # Direct word matches get highest score
+        for word in identifier_words:
+            if word in symbol_lower or symbol_lower in word:
+                score += 10
+
+            # Partial matches (for snake_case vs camelCase)
+            word_parts = word.split("_")
+            symbol_parts = symbol_lower.split("_")
+
+            for word_part in word_parts:
+                for symbol_part in symbol_parts:
+                    if len(word_part) > 2 and len(symbol_part) > 2:
+                        if word_part in symbol_part or symbol_part in word_part:
+                            score += 3
+
+        # Bonus for commonly referenced symbols
+        if any(keyword in symbol_lower for keyword in ["test", "main", "init", "config", "handler"]):
+            score += 1
+
+        if score > 0:
+            symbol_scores[symbol_name] = score
+
+    # Return top scoring symbols
+    sorted_symbols = sorted(symbol_scores.items(), key=lambda x: x[1], reverse=True)
+    return [symbol for symbol, _ in sorted_symbols[:max_symbols]]
+
+
 def generate_aliases(symbol_name: str, symbol_kind: str, lang: str = "en", project_root: Union[str, Path] = ".") -> List[str]:
     """
     Generate aliases for a symbol to improve matching with lexicon awareness.
@@ -248,7 +297,11 @@ def reconcile_text(
     Returns:
         Tuple of (reconciled_text, list_of_matched_symbols, list_of_unknown_mentions, lexicon_hits, unresolved_terms)
     """
+    from .progress import reporter
     from .surface import load_cache
+
+    # Step 1: Language detection and cache loading
+    reporter.sub_step("Detecting language and loading cache", 1, 4)
 
     # Determine effective language for lexicon processing
     effective_lang, lang_meta = get_effective_language(asr_language, text, project_root)
@@ -268,44 +321,48 @@ def reconcile_text(
     unresolved_terms = []
     reconciled_text = text
 
-    # Rules-based processing
-    if lex_mode in {"rules", "hybrid"}:
+    # Step 2: Process based on mode
+    if lex_mode == "hybrid":
+        # New optimized hybrid mode: LLM first, then rules on marked content
+        reporter.sub_step("LLM preprocessing and selective rules", 2, 3)
+        reconciled_text, matched_symbols, unknown_mentions, lexicon_hits = _process_llm_first_hybrid(text, known_symbols, effective_lang, project_root)
+    elif lex_mode == "rules":
+        # Traditional rules-only processing
+        reporter.sub_step("Processing with rules-based matching", 2, 3)
         matched_symbols, unknown_mentions, lexicon_hits, reconciled_text = _process_rules_based(text, known_symbols, effective_lang, project_root)
-
-        # Collect unresolved terms for potential LLM processing
-        if lex_mode == "hybrid":
-            unresolved_terms = _extract_unresolved_terms(text, matched_symbols)
-
-    # LLM-based processing
-    if lex_mode in {"llm", "hybrid"} and (lex_mode == "llm" or unresolved_terms):
+    elif lex_mode == "llm":
+        # LLM-only processing
+        reporter.sub_step("Processing with LLM-based matching", 2, 3)
         candidate_symbols = list(known_symbols.keys())
-        llm_matched, llm_unknown = _process_llm_based(text, candidate_symbols, known_symbols, unresolved_terms if lex_mode == "hybrid" else None)
+        llm_matched, llm_unknown = _process_llm_based(text, candidate_symbols, known_symbols, None)
 
-        # Merge results
+        matched_symbols = llm_matched
+        unknown_mentions = llm_unknown
+
+        # Apply LLM results to text
         for symbol in llm_matched:
-            if symbol not in matched_symbols:
-                matched_symbols.append(symbol)
-                # Replace in text
-                reconciled_text = reconciled_text.replace(symbol.replace("_", " "), f"`{symbol}`")
-                reconciled_text = reconciled_text.replace(symbol, f"`{symbol}`")
-
-        unknown_mentions.extend(llm_unknown)
+            reconciled_text = reconciled_text.replace(symbol.replace("_", " "), f"`{symbol}`")
+            reconciled_text = reconciled_text.replace(symbol, f"`{symbol}`")
 
     return reconciled_text, matched_symbols, unknown_mentions, lexicon_hits, unresolved_terms
 
 
 def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_lang: str, project_root: str) -> Tuple[List[str], List[str], List[str], str]:
     """Process text using rules-based approach with stemming."""
+    from .progress import reporter
+
     matched_symbols = []
     unknown_mentions = []
     lexicon_hits = []
     reconciled_text = text
 
-    # Apply lexicon normalization to the entire text first
+    # Sub-step 1: Apply lexicon normalization
+    reporter.sub_step_with_progress("Processing with rules-based matching", "applying lexicon normalization", 1, 5)
     normalized_text, text_lexicon_hits, _ = normalize_phrase_with_lexicon(text, effective_lang, project_root)
     lexicon_hits.extend(text_lexicon_hits)
 
-    # Apply context rules first (on both original and normalized text)
+    # Sub-step 2: Apply context rules
+    reporter.sub_step_with_progress("Processing with rules-based matching", "applying context rules", 2, 5)
     context_matches = apply_context_rules(text, known_symbols, effective_lang, project_root)
     context_matches_norm = apply_context_rules(normalized_text, known_symbols, effective_lang, project_root)
 
@@ -319,7 +376,8 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
             # Replace with backticked version
             reconciled_text = reconciled_text.replace(original, f"`{symbol_name}`")
 
-    # Extract n-grams for general fuzzy matching with stemming
+    # Sub-step 3: Extract and process n-grams
+    reporter.sub_step_with_progress("Processing with rules-based matching", "extracting n-grams for fuzzy matching", 3, 5)
     original_tokens = normalize_text(text).split()
     lexicon_tokens = normalize_text(normalized_text).split()
 
@@ -338,12 +396,19 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
     # Remove duplicates
     ngrams = list(set(ngrams))
 
+    # Sub-step 4: Perform fuzzy matching
+    reporter.sub_step_with_progress("Processing with rules-based matching", f"fuzzy matching {len(ngrams)} n-grams", 4, 5)
+
     # Track replacements to avoid conflicts
     replacements = []
 
-    for ngram in ngrams:
+    for i, ngram in enumerate(ngrams):
         if len(ngram.strip()) < 2:  # Skip very short ngrams
             continue
+
+        # Report progress for large ngram sets
+        if len(ngrams) > 50 and i % 10 == 0:
+            reporter.sub_step_with_progress("Processing with rules-based matching", f"fuzzy matching n-grams ({i + 1}/{len(ngrams)})", 4, 5)
 
         best_match = None
         best_score = 0.0
@@ -371,6 +436,9 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
             if original_ngram and original_ngram not in unknown_mentions:
                 unknown_mentions.append(original_ngram)
 
+    # Sub-step 5: Apply replacements
+    reporter.sub_step_with_progress("Processing with rules-based matching", f"applying {len(replacements)} replacements", 5, 5)
+
     # Apply replacements, longest first to avoid partial replacements
     replacements.sort(key=lambda x: len(x[0]), reverse=True)
     for original, replacement in replacements:
@@ -380,22 +448,130 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
     return matched_symbols, unknown_mentions, lexicon_hits, reconciled_text
 
 
+def _process_llm_first_hybrid(text: str, known_symbols: Dict[str, Dict], effective_lang: str, project_root: str) -> Tuple[str, List[str], List[str], List[str]]:
+    """
+    Process text using LLM-first approach for optimized hybrid mode.
+
+    Steps:
+    1. Filter relevant symbols for LLM
+    2. Use LLM to mark potential symbols with backticks
+    3. Apply rules only to backtick-marked content
+
+    Returns:
+        Tuple of (processed_text, matched_symbols, unknown_mentions, lexicon_hits)
+    """
+    from .llm_map import llm_preprocess_text
+    from .progress import reporter
+
+    # Step 1: Filter relevant symbols for LLM processing
+    reporter.sub_step_with_progress("LLM preprocessing", "filtering relevant symbols", 1, 3)
+    relevant_symbols = _filter_relevant_symbols(text, known_symbols, max_symbols=50)
+
+    if not relevant_symbols:
+        # No relevant symbols found, fall back to original text
+        return text, [], [], []
+
+    # Step 2: Use LLM to preprocess and mark symbols
+    reporter.sub_step("LLM preprocessing", 2, 3)
+    preprocessed_text = llm_preprocess_text(text, relevant_symbols)
+
+    # Step 3: Apply rules selectively to marked content
+    reporter.sub_step("Processing marked symbols with rules", 3, 3)
+    matched_symbols, unknown_mentions, lexicon_hits, reconciled_text = _process_marked_text_with_rules(
+        preprocessed_text, known_symbols, effective_lang, project_root
+    )
+
+    return reconciled_text, matched_symbols, unknown_mentions, lexicon_hits
+
+
+def _process_marked_text_with_rules(
+    text: str, known_symbols: Dict[str, Dict], effective_lang: str, project_root: str
+) -> Tuple[List[str], List[str], List[str], str]:
+    """
+    Process text that has been marked by LLM, applying rules only to backtick-marked content.
+
+    Args:
+        text: Text with LLM-marked symbols (backticks)
+        known_symbols: Dictionary of known symbols
+        effective_lang: Effective language for processing
+        project_root: Project root directory
+
+    Returns:
+        Tuple of (matched_symbols, unknown_mentions, lexicon_hits, reconciled_text)
+    """
+    import re
+
+    from .lexicon import normalize_phrase_with_lexicon
+
+    matched_symbols = []
+    unknown_mentions = []
+    lexicon_hits = []
+    reconciled_text = text
+
+    # Extract backtick-marked phrases for focused processing
+    backtick_pattern = r"`([^`]+)`"
+    marked_phrases = re.findall(backtick_pattern, text)
+
+    # Apply lexicon normalization to the entire text
+    normalized_text, text_lexicon_hits, _ = normalize_phrase_with_lexicon(text, effective_lang, project_root)
+    lexicon_hits.extend(text_lexicon_hits)
+
+    # Process each marked phrase with focused rules
+    for phrase in marked_phrases:
+        # Check if phrase directly matches a known symbol
+        if phrase in known_symbols:
+            if phrase not in matched_symbols:
+                matched_symbols.append(phrase)
+            continue
+
+        # Apply fuzzy matching to the marked phrase
+        best_match = None
+        best_score = 0.0
+
+        for symbol_name, symbol_info in known_symbols.items():
+            aliases = generate_aliases(symbol_name, symbol_info.get("kind", "unknown"), effective_lang, project_root)
+            score = fuzzy_match_symbol(phrase, aliases, threshold=0.7)  # Lower threshold for LLM-marked content
+
+            if score and score > best_score:
+                best_score = score
+                best_match = symbol_name
+
+        if best_match and best_match not in matched_symbols:
+            matched_symbols.append(best_match)
+            # Replace the backticked phrase with the matched symbol
+            reconciled_text = reconciled_text.replace(f"`{phrase}`", f"`{best_match}`")
+        else:
+            # Keep the phrase but add to unknown mentions
+            if phrase not in unknown_mentions:
+                unknown_mentions.append(phrase)
+
+    return matched_symbols, unknown_mentions, lexicon_hits, reconciled_text
+
+
 def _process_llm_based(
     text: str, candidate_symbols: List[str], known_symbols: Dict[str, Dict], unresolved_terms: Optional[List[str]] = None
 ) -> Tuple[List[str], List[str]]:
     """Process text using LLM-based approach."""
+    from .progress import reporter
+
     try:
         from .llm_map import filter_high_confidence_mappings, llm_map_symbols, validate_mappings_against_cache
 
-        # Get LLM mappings
+        # Sub-step 1: Get LLM mappings
+        reporter.sub_step_with_progress("Processing with LLM-based matching", f"mapping {len(candidate_symbols)} candidate symbols", 1, 4)
         mappings = llm_map_symbols(text, candidate_symbols)
 
-        # Filter high confidence mappings
+        # Sub-step 2: Filter high confidence mappings
+        reporter.sub_step_with_progress("Processing with LLM-based matching", f"filtering {len(mappings)} mappings by confidence", 2, 4)
         high_conf_mappings = filter_high_confidence_mappings(mappings, min_confidence=0.8)
 
-        # Validate against cache
+        # Sub-step 3: Validate against cache
+        reporter.sub_step_with_progress("Processing with LLM-based matching", f"validating {len(high_conf_mappings)} high-confidence mappings", 3, 4)
         cache_symbols = set(known_symbols.keys())
         valid_mappings = validate_mappings_against_cache(high_conf_mappings, cache_symbols)
+
+        # Sub-step 4: Extract results
+        reporter.sub_step_with_progress("Processing with LLM-based matching", f"extracting {len(valid_mappings)} valid symbols", 4, 4)
 
         # Extract matched symbols
         matched_symbols = [m.symbol for m in valid_mappings]

@@ -821,6 +821,8 @@ class TestProgressReporter:
         assert hasattr(reporter, "is_active")
         assert hasattr(reporter, "complete_step")
         assert hasattr(reporter, "step_with_context")
+        assert hasattr(reporter, "sub_step")
+        assert hasattr(reporter, "sub_step_with_progress")
 
     def test_reporter_step_completion(self):
         """Test step completion functionality."""
@@ -862,6 +864,250 @@ class TestProgressReporter:
         completed = reporter.get_completed_steps()
         assert "Initial" in completed
         assert "Calling the model for reconciliation" in completed
+
+    def test_reporter_sub_steps(self):
+        """Test sub-step functionality of progress reporter."""
+        from rich.console import Console
+
+        from prompt_distil.core.progress import ProgressReporter
+
+        reporter = ProgressReporter()
+        console = Console()
+
+        # Initialize reporter
+        status = reporter.initialize(console, "Main task")
+
+        # Test basic sub-step
+        reporter.sub_step("Sub-task 1")
+        assert reporter.is_active()
+
+        # Test sub-step with progress
+        reporter.sub_step("Sub-task 2", 2, 5)
+        assert reporter.is_active()
+
+        # Test hierarchical sub-step
+        reporter.sub_step_with_progress("Main task", "processing data", 3, 5)
+        assert reporter.is_active()
+
+        # Complete the task
+        reporter.complete_step()
+
+    def test_detailed_reconciliation_progress(self):
+        """Test detailed progress reporting during reconciliation."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import reconcile_text
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "login_handler", "kind": "function", "path": "test.py", "lineno": 5},
+                    {"name": "process_data", "kind": "function", "path": "test.py", "lineno": 10},
+                ],
+                "inverted_index": {"delete_task": ["test.py#L1"], "login_handler": ["test.py#L5"], "process_data": ["test.py#L10"]},
+            }
+            save_cache(temp_dir, cache_data)
+
+            # Test reconciliation with progress reporting
+            text = "Update the delete_task function and login_handler to process_data correctly"
+            reconciled, matched, unknown, lex_hits, unresolved = reconcile_text(text, temp_dir, "en", "rules")
+
+            # Verify reconciliation worked
+            assert "delete_task" in matched
+            assert "login_handler" in matched
+            assert "process_data" in matched
+            assert "`delete_task`" in reconciled
+            assert "`login_handler`" in reconciled
+            assert "`process_data`" in reconciled
+
+    def test_hybrid_mode_reconciliation_progress(self):
+        """Test detailed progress reporting in hybrid mode reconciliation."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import reconcile_text
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "unknown_function", "kind": "function", "path": "test.py", "lineno": 10},
+                ],
+                "inverted_index": {"delete_task": ["test.py#L1"], "unknown_function": ["test.py#L10"]},
+            }
+            save_cache(temp_dir, cache_data)
+
+            # Test hybrid mode which should trigger both rules and potentially LLM processing
+            text = "Update delete_task and some_mysterious_function"
+            reconciled, matched, unknown, lex_hits, unresolved = reconcile_text(text, temp_dir, "en", "hybrid")
+
+            # Should find delete_task via rules
+            assert "delete_task" in matched
+            assert "`delete_task`" in reconciled
+
+            # May have unresolved terms for LLM processing
+            assert isinstance(unresolved, list)
+
+
+class TestOptimizedReconciliation:
+    """Test the optimized LLM-first reconciliation functionality."""
+
+    def test_symbol_filtering_for_llm(self):
+        """Test symbol filtering for optimized LLM processing."""
+        from prompt_distil.core.reconcile import _filter_relevant_symbols
+
+        # Create test symbols
+        known_symbols = {
+            "delete_task": {"kind": "function"},
+            "login_handler": {"kind": "function"},
+            "process_data": {"kind": "function"},
+            "unrelated_function": {"kind": "function"},
+            "another_unrelated": {"kind": "function"},
+        }
+
+        # Test text with some relevant terms
+        text = "Update the delete task function and login handler"
+        filtered = _filter_relevant_symbols(text, known_symbols, max_symbols=3)
+
+        # Should include relevant symbols
+        assert "delete_task" in filtered
+        assert "login_handler" in filtered
+        # Should not include unrelated symbols if limit is respected
+        assert len(filtered) <= 3
+
+    def test_llm_first_hybrid_mode_processing(self):
+        """Test LLM-first hybrid mode processing logic."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import _process_llm_first_hybrid
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "login_handler", "kind": "function", "path": "test.py", "lineno": 5},
+                ],
+                "inverted_index": {"delete_task": ["test.py#L1"], "login_handler": ["test.py#L5"]},
+            }
+            save_cache(temp_dir, cache_data)
+
+            known_symbols = {s["name"]: s for s in cache_data["symbols"]}
+
+            # Test text that should trigger LLM processing
+            text = "Update delete task and login handler functions"
+
+            # Note: This will not actually call LLM in tests, but tests the structure
+            result_text, matched, unknown, lex_hits = _process_llm_first_hybrid(text, known_symbols, "en", temp_dir)
+
+            # Should return some form of processed text
+            assert isinstance(result_text, str)
+            assert isinstance(matched, list)
+            assert isinstance(unknown, list)
+            assert isinstance(lex_hits, list)
+
+    def test_marked_text_processing_with_rules(self):
+        """Test processing of LLM-marked text with selective rules."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import _process_marked_text_with_rules
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "login_handler", "kind": "function", "path": "test.py", "lineno": 5},
+                ],
+                "inverted_index": {"delete_task": ["test.py#L1"], "login_handler": ["test.py#L5"]},
+            }
+            save_cache(temp_dir, cache_data)
+
+            known_symbols = {s["name"]: s for s in cache_data["symbols"]}
+
+            # Test text with LLM-marked content (simulated)
+            marked_text = "Update `delete_task` and `login_handler` functions"
+
+            matched, unknown, lex_hits, result = _process_marked_text_with_rules(marked_text, known_symbols, "en", temp_dir)
+
+            # Should match the marked symbols
+            assert "delete_task" in matched
+            assert "login_handler" in matched
+            # Should preserve backticks in result
+            assert "`delete_task`" in result
+            assert "`login_handler`" in result
+
+    def test_optimized_hybrid_vs_traditional_hybrid(self):
+        """Test that optimized hybrid mode produces reasonable results."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import reconcile_text
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "delete_task", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "login_handler", "kind": "function", "path": "test.py", "lineno": 5},
+                    {"name": "process_data", "kind": "function", "path": "test.py", "lineno": 10},
+                ],
+                "inverted_index": {
+                    "delete_task": ["test.py#L1"],
+                    "login_handler": ["test.py#L5"],
+                    "process_data": ["test.py#L10"],
+                },
+            }
+            save_cache(temp_dir, cache_data)
+
+            # Test optimized hybrid mode
+            text = "Update delete_task function and login_handler"
+            reconciled, matched, unknown, lex_hits, unresolved = reconcile_text(text, temp_dir, "en", "hybrid")
+
+            # Should process the text (exact results depend on LLM availability)
+            assert isinstance(reconciled, str)
+            assert isinstance(matched, list)
+            assert isinstance(unknown, list)
+            assert isinstance(lex_hits, list)
+            assert isinstance(unresolved, list)
+
+            # Compare with rules-only mode
+            reconciled_rules, matched_rules, unknown_rules, lex_hits_rules, unresolved_rules = reconcile_text(text, temp_dir, "en", "rules")
+
+            # Both should handle the basic case
+            assert isinstance(reconciled_rules, str)
+            assert isinstance(matched_rules, list)
 
 
 if __name__ == "__main__":
