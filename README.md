@@ -4,24 +4,34 @@ Intent Distiller CLI - Turn noisy transcripts into clean prompts for coding agen
 
 ## Overview
 
-Prompt Distiller is a minimal MVP tool that converts noisy voice transcripts into structured, clear English prompts suitable for coding agents. It uses OpenAI's GPT-4 for intelligent parsing and Whisper for automatic speech recognition (ASR).
+Prompt Distiller is a comprehensive tool that converts noisy voice transcripts into structured, clear prompts suitable for coding agents. It uses OpenAI's GPT-4 for intelligent parsing and Whisper for automatic speech recognition (ASR).
 
-The tool performs surface-level project understanding (no AST parsing) and generates prompts in three verbosity levels: Short, Standard, and Verbose.
+The tool performs intelligent project understanding with AST-based symbol extraction and generates prompts in three verbosity levels: Short, Standard, and Verbose. It features advanced status reporting, performance optimizations, and sophisticated reconciliation capabilities.
 
 ## Features
 
+### Core Functionality
 - **Speech-to-Text**: Convert audio files to text using OpenAI Whisper
 - **Intelligent Distillation**: Extract structured intent from noisy transcripts
 - **Multiple Output Formats**: Short, Standard, and Verbose prompts
-- **Project Context**: Surface-level project indexing for better context
-- **Rich CLI Interface**: Beautiful console output with syntax highlighting
+- **Project Context**: AST-based project indexing for better context
+- **Rich CLI Interface**: Beautiful console output with syntax highlighting and persistent status messages
 - **Multiple Output Formats**: Rich console, Markdown, or JSON output
+
+### Advanced Processing
 - **Code Identifier Preservation**: Automatic protection of code identifiers during processing
 - **Multilingual Support**: Auto language detection with intelligent translation handling
 - **Symbol Cache**: Persistent symbol inventory for fast reconciliation and matching
 - **Smart Reconciliation**: Fuzzy matching with stemming and LLM fallback for robust symbol mapping
 - **Stemming Support**: Handles inflected forms using Snowball stemmers for ru/es/en
 - **LLM Fallback**: Optional AI-assisted mapping when rule-based matching fails
+
+### Performance & User Experience
+- **Enhanced Status Reporting**: Detailed progress tracking with persistent status messages and sub-steps
+- **Performance Optimizations**: Caching, timing decorators, and optimized fuzzy matching with rapidfuzz
+- **Hybrid Mode Processing**: Optimized LLM-first approach with selective rule application
+- **Mode-Specific Prompts**: Different system prompts for LLM-only vs hybrid/rules modes
+- **Clean Backtick Handling**: Proper processing of code identifiers across different modes
 
 ## Installation
 
@@ -296,8 +306,12 @@ The tool is structured into core modules:
 - **`core/speech.py`**: Whisper ASR wrapper + code identifier protection
 - **`core/surface.py`**: Project indexing, search, and symbol cache management
 - **`core/reconcile.py`**: Symbol reconciliation and fuzzy text matching
+- **`core/lexicon.py`**: Multilingual lexicon support and language detection
+- **`core/llm_map.py`**: LLM-assisted symbol mapping for complex cases
 - **`core/distill.py`**: Transcript → IR-lite → prompts with identifier preservation
 - **`core/prompt.py`**: Template-based prompt rendering (3 profiles)
+- **`core/progress.py`**: Global progress reporting with persistent status tracking
+- **`core/timing.py`**: Performance monitoring and debugging utilities
 - **`main.py`**: Typer CLI interface with file input and cache management
 
 ### Key Features
@@ -315,6 +329,43 @@ The tool is structured into core modules:
 - **Smart Reconciliation**: Fuzzy matching with alias generation, context rules, stemming, and LLM fallback
 - **Clean Entity Display**: "Related (if any)" section shows actual paths when known, no placeholders
 - **Session Tracking**: Reports project root, ASR/lexicon languages, stemmer info, processing mode, preserved/reconciled/unknown identifiers
+- **Enhanced Status Messages**: Persistent progress indicators with detailed sub-step reporting
+- **Performance Monitoring**: Optional timing information with `PD_DEBUG=1` environment variable
+
+## Debugging and Performance
+
+### Debug Mode
+Enable detailed timing and performance information:
+
+```bash
+# Enable debug mode for performance monitoring
+export PD_DEBUG=1
+uv run prompt-distil distill --text "your transcript here"
+
+# Debug mode shows timing for key operations:
+# - Reconciliation processing time
+# - LLM API call duration
+# - Cache loading and symbol matching
+# - N-gram generation and fuzzy matching
+```
+
+### Performance Optimizations
+The tool includes several performance enhancements:
+
+- **Caching with LRU**: Lexicon loading, stemming, and alias generation are cached
+- **Optimized Fuzzy Matching**: Uses rapidfuzz instead of difflib for 10x speed improvement
+- **Hybrid Mode Optimization**: LLM processes only relevant symbols, then applies rules selectively
+- **Symbol Filtering**: Limits LLM candidate symbols to 50 most relevant matches
+- **Bounded Scanning**: Cache limited to 1000 files and 200KB per file by default
+
+### Status Reporting Features
+Enhanced progress tracking shows:
+- Main process steps with persistent checkmarks
+- Detailed sub-steps for reconciliation model calls
+- N-gram search progress indicators
+- Explicit reporting of LLM API calls
+- Backtick cleaning confirmation
+- Model response parsing status
 
 ## Development
 
@@ -341,7 +392,7 @@ The project follows Python best practices:
 
 - Surface-level project understanding (AST used only for symbol extraction)
 - Requires OpenAI API key for both ASR and distillation
-- **Runtime deps**: snowballstemmer for stemming inflected forms; OpenAI API for LLM fallback
+- **Runtime deps**: snowballstemmer for stemming inflected forms; OpenAI API for LLM fallback; rapidfuzz for optimized fuzzy matching
 - Audio files limited to 25MB (Whisper API limit)
 - Cache limited to 1000 files and 200KB per file by default; LLM candidate symbols capped at 200
 - Symbol reconciliation works best with Python projects; stemming supports ru/es/en
@@ -351,9 +402,64 @@ The project follows Python best practices:
 - Auto language mode may still produce English output due to structured JSON requirements
 - No file writes outside project root's `.prompt_distil/` directory and normal build artifacts
 
+## Roadmap
+
+### Upcoming Features
+
+#### Microphone Integration
+- **Real-time Audio Capture**: Direct microphone input for live transcription
+- **Streaming ASR**: Process audio as you speak for faster feedback
+- **Voice Activity Detection**: Automatic start/stop recording based on speech detection
+- **Multiple Audio Devices**: Support for different microphone inputs and configurations
+- **Noise Reduction**: Built-in audio preprocessing for cleaner transcripts
+
+#### ASR Model Integration
+- **Local ASR Support**: Integration with local speech recognition models for privacy
+- **Custom Model Training**: Support for domain-specific ASR model fine-tuning
+- **Offline Processing**: Ability to process audio without internet connectivity
+- **Multiple ASR Backends**: Choice between OpenAI Whisper, local models, and other providers
+- **Language Model Optimization**: Better handling of technical terminology and code-related speech
+
+#### Enhanced Project Understanding
+- **Deeper AST Analysis**: More sophisticated code structure understanding
+- **Cross-language Support**: Better support for JavaScript, TypeScript, Go, Rust projects
+- **API Documentation Integration**: Automatic inclusion of API docs and schemas in context
+- **Git Integration**: Incorporate recent changes and commit history into prompts
+- **Dependency Analysis**: Understanding of project dependencies and their APIs
+
+#### Advanced Features
+- **Interactive Mode**: Step-by-step refinement of generated prompts
+- **Template System**: Custom prompt templates for different types of tasks
+- **Integration APIs**: REST API for programmatic access to distillation functionality
+- **Batch Processing**: Process multiple audio files or transcripts simultaneously
+- **Configuration Profiles**: Saved configurations for different projects and use cases
+
+### Contributing to the Roadmap
+We welcome feedback and contributions! If you have ideas for features or would like to contribute to development, please open an issue or submit a pull request.
+
 ## License
 
-[Add your license here]
+MIT License
+
+Copyright (c) 2024 Prompt Distiller
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Contributing
 
