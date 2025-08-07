@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
+import pyperclip
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -268,17 +269,36 @@ def index(
 def _display_distillation_result(result: dict, profile: str, output_format: str):
     """Display distillation results in the specified format."""
 
+    # Get the prompt text for clipboard copying
+    selected_prompt = result["selected_prompt"]
+
     if output_format == "json":
         import json
 
         # Convert IRLite to dict for JSON serialization
         ir_dict = result["ir"].model_dump()
         output = {"ir": ir_dict, "prompts": result["prompts"], "session_passport": result["session_passport"]}
-        console.print(json.dumps(output, indent=2))
+        json_output = json.dumps(output, indent=2)
+        console.print(json_output)
+
+        # Copy the prompt part in JSON format to clipboard
+        prompt_json = json.dumps({"prompt": selected_prompt}, indent=2)
+        try:
+            pyperclip.copy(prompt_json)
+        except Exception:
+            # Silently handle clipboard errors to not break functionality
+            pass
         return
 
     elif output_format == "markdown":
-        console.print(result["selected_prompt"])
+        console.print(selected_prompt)
+
+        # Copy the prompt in markdown format to clipboard
+        try:
+            pyperclip.copy(selected_prompt)
+        except Exception:
+            # Silently handle clipboard errors to not break functionality
+            pass
         return
 
     # Rich format (default)
@@ -288,6 +308,13 @@ def _display_distillation_result(result: dict, profile: str, output_format: str)
     console.print(f"\n[bold green]Generated Prompt ({profile} profile):[/bold green]")
     syntax = Syntax(result["selected_prompt"], "markdown", theme="monokai", line_numbers=False)
     console.print(Panel(syntax, border_style="green"))
+
+    # Copy the prompt in markdown format to clipboard for rich format
+    try:
+        pyperclip.copy(selected_prompt)
+    except Exception:
+        # Silently handle clipboard errors to not break functionality
+        pass
 
     # Display session passport
     console.print("\n[bold blue]Session Passport:[/bold blue]")

@@ -12,6 +12,7 @@ dependencies = [
     "rich",
     "snowballstemmer>=3.0.1",
     "rapidfuzz",
+    "pyperclip>=1.9.0",
 ]
 
 [project.scripts]

@@ -1203,5 +1203,71 @@ class TestOptimizedReconciliation:
             assert len(matched) == 1  # Only the backticked keyword match
 
 
+class TestClipboardFunctionality:
+    """Test clipboard copying functionality."""
+
+    def test_clipboard_copying_with_mock(self):
+        """Test that clipboard copying works without actually using system clipboard."""
+        import json
+        from unittest.mock import patch
+
+        from rich.console import Console
+
+        from prompt_distil.main import _display_distillation_result
+
+        # Mock result data
+        result = {
+            "selected_prompt": "## Goal\nTest prompt\n\n## Context\nTest context",
+            "ir": type("MockIR", (), {"model_dump": lambda self: {}})(),
+            "prompts": {},
+            "session_passport": {
+                "processing_stats": {"known_entities_found": 0, "requirements_extracted": 1, "unknowns_identified": 0, "assumptions_made": 1},
+                "model_used": "gpt-4o",
+                "dropped_or_simplified": [],
+            },
+        }
+
+        console = Console()
+
+        # Test markdown format clipboard copying
+        with patch("prompt_distil.main.pyperclip.copy") as mock_copy:
+            _display_distillation_result(result, "standard", "markdown")
+            mock_copy.assert_called_once_with("## Goal\nTest prompt\n\n## Context\nTest context")
+
+        # Test JSON format clipboard copying
+        with patch("prompt_distil.main.pyperclip.copy") as mock_copy:
+            _display_distillation_result(result, "standard", "json")
+            expected_json = json.dumps({"prompt": "## Goal\nTest prompt\n\n## Context\nTest context"}, indent=2)
+            mock_copy.assert_called_once_with(expected_json)
+
+        # Test rich format clipboard copying (should copy as markdown)
+        with patch("prompt_distil.main.pyperclip.copy") as mock_copy:
+            _display_distillation_result(result, "standard", "rich")
+            mock_copy.assert_called_once_with("## Goal\nTest prompt\n\n## Context\nTest context")
+
+    def test_clipboard_error_handling(self):
+        """Test that clipboard errors don't break the application."""
+        from unittest.mock import patch
+
+        from prompt_distil.main import _display_distillation_result
+
+        # Mock result data
+        result = {
+            "selected_prompt": "## Goal\nTest prompt",
+            "ir": type("MockIR", (), {"model_dump": lambda self: {}})(),
+            "prompts": {},
+            "session_passport": {
+                "processing_stats": {"known_entities_found": 0, "requirements_extracted": 1, "unknowns_identified": 0, "assumptions_made": 1},
+                "model_used": "gpt-4o",
+                "dropped_or_simplified": [],
+            },
+        }
+
+        # Test that clipboard errors are handled gracefully
+        with patch("prompt_distil.main.pyperclip.copy", side_effect=Exception("Clipboard error")):
+            # This should not raise an exception
+            _display_distillation_result(result, "standard", "markdown")
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
