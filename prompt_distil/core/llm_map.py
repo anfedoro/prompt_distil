@@ -134,10 +134,20 @@ def llm_preprocess_text(transcript: str, candidate_symbols: List[str]) -> str:
     system_prompt = _create_preprocessing_system_prompt(candidate_symbols)
     user_prompt = _create_preprocessing_user_prompt(transcript)
 
+    # Debug logging - import here to avoid circular imports
+    from .debug_log import get_debug_logger
+
+    debug_logger = get_debug_logger(".")
+
     try:
         from .progress import reporter
 
         reporter.sub_step_with_progress("LLM preprocessing", "analyzing text for potential symbols", 1, 2)
+
+        # Log LLM request details
+        full_prompt = f"SYSTEM: {system_prompt}\n\nUSER: {user_prompt}"
+        debug_logger.log_llm_request("llm_preprocessing", full_prompt, candidate_symbols)
+
         client = get_client()
 
         response = client.chat.completions.create(
@@ -149,12 +159,19 @@ def llm_preprocess_text(transcript: str, candidate_symbols: List[str]) -> str:
 
         content = response.choices[0].message.content
         if not content:
+            # Log empty response
+            debug_logger.log_llm_response("llm_preprocessing", "", "EMPTY_RESPONSE")
             return transcript
+
+        # Log LLM response details
+        debug_logger.log_llm_response("llm_preprocessing", content, content.strip())
 
         reporter.sub_step_with_progress("LLM preprocessing", "extracting marked text", 2, 2)
         return content.strip()
 
-    except Exception:
+    except Exception as e:
+        # Log error details
+        debug_logger.log_error("llm_preprocessing", e, {"transcript": transcript, "candidate_symbols_count": len(candidate_symbols)})
         # If LLM preprocessing fails, return original text
         return transcript
 

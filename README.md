@@ -331,6 +331,7 @@ The tool is structured into core modules:
 - **Session Tracking**: Reports project root, ASR/lexicon languages, stemmer info, processing mode, preserved/reconciled/unknown identifiers
 - **Enhanced Status Messages**: Persistent progress indicators with detailed sub-step reporting
 - **Performance Monitoring**: Optional timing information with `PD_DEBUG=1` environment variable
+- **Debug Logging**: Comprehensive reconciliation analysis with `PD_DEBUG_RECONCILE=1` or `--debug-reconcile`
 
 ## Debugging and Performance
 
@@ -349,6 +350,30 @@ uv run prompt-distil distill --text "your transcript here"
 # - N-gram generation and fuzzy matching
 ```
 
+### Debug Logging for Reconciliation
+Enable detailed debug logging for reconcile_text hybrid mode operations:
+
+```bash
+# Enable detailed debug logging via CLI flag
+uv run prompt-distil distill --text "fix the login function" --debug-reconcile
+
+# Or enable via environment variable
+export PD_DEBUG_RECONCILE=1
+uv run prompt-distil distill --text "fix the login function"
+
+# Works with all commands
+uv run prompt-distil from-audio recording.wav --debug-reconcile
+```
+
+Debug logs are stored in `{project_root}/.prompt_distil/debug/session_YYYYMMDD_HHMMSS/` and include:
+- **LLM requests and responses**: Complete prompts sent to reconciliation model and received responses
+- **Symbol filtering**: Which symbols were filtered for LLM processing and why
+- **N-gram comparisons**: Detailed fuzzy matching results for each n-gram against symbol aliases
+- **Reconciliation summary**: Complete before/after text comparison with matched symbols
+- **Error logs**: Detailed error information if reconciliation fails
+
+Each log file is timestamped JSON with structured data for easy analysis.
+
 ### Performance Optimizations
 The tool includes several performance enhancements:
 
@@ -357,6 +382,7 @@ The tool includes several performance enhancements:
 - **Hybrid Mode Optimization**: LLM processes only relevant symbols, then applies rules selectively
 - **Symbol Filtering**: Limits LLM candidate symbols to 50 most relevant matches
 - **Bounded Scanning**: Cache limited to 1000 files and 200KB per file by default
+- **Debug Logging**: Comprehensive logging system for analyzing reconciliation behavior when enabled
 
 ### Status Reporting Features
 Enhanced progress tracking shows:
@@ -366,6 +392,7 @@ Enhanced progress tracking shows:
 - Explicit reporting of LLM API calls
 - Backtick cleaning confirmation
 - Model response parsing status
+- Debug logging session information when enabled
 
 ## Development
 

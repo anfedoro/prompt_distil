@@ -7,6 +7,7 @@ This module provides the Typer-based command-line interface with commands for:
 - Project indexing utilities
 """
 
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -41,6 +42,7 @@ def distill(
     project_root: str = typer.Option(".", "--project-root", help="Project root directory for symbol cache and context"),
     output_format: str = typer.Option("rich", "--format", "-f", help="Output format (rich, markdown, json)"),
     lex_mode: str = typer.Option("hybrid", "--lex-mode", help="Lexicon mode (rules|llm|hybrid)"),
+    debug: bool = typer.Option(False, "--debug", help="Enable detailed debug logging for reconcile_text hybrid mode"),
 ):
     """
     Distill text transcript into structured prompts.
@@ -86,6 +88,10 @@ def distill(
             # Validate configuration
             validate_config()
 
+            # Set debug environment variable if flag is enabled
+            if debug:
+                os.environ["PD_DEBUG_RECONCILE"] = "1"
+
             # Load or ensure cache for reconciliation
             reporter.step("Building/Using cache…")
             if not load_cache(project_root):
@@ -117,6 +123,7 @@ def from_audio(
     project_root: str = typer.Option(".", "--project-root", help="Project root directory for symbol cache and context"),
     output_format: str = typer.Option("rich", "--format", "-f", help="Output format (rich, markdown, json)"),
     lex_mode: str = typer.Option("hybrid", "--lex-mode", help="Lexicon mode (rules|llm|hybrid)"),
+    debug: bool = typer.Option(False, "--debug", help="Enable detailed debug logging for reconcile_text hybrid mode"),
 ):
     """
     Process audio file with Whisper ASR then distill into prompts.
@@ -137,6 +144,10 @@ def from_audio(
 
             # Validate configuration
             validate_config()
+
+            # Set debug environment variable if flag is enabled
+            if debug:
+                os.environ["PD_DEBUG_RECONCILE"] = "1"
 
             # Check audio file
             reporter.step("Checking audio file…")

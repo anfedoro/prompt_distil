@@ -406,6 +406,11 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
     # Sub-step 4: Perform fuzzy matching on n-grams
     reporter.sub_step_with_progress("Rules-based n-gram matching", f"performing fuzzy matching on {len(ngrams)} n-grams", 4, 5)
 
+    # Initialize debug logger for n-gram comparisons
+    from .debug_log import get_debug_logger
+
+    debug_logger = get_debug_logger(project_root)
+
     # Track replacements to avoid conflicts
     replacements = []
 
@@ -419,6 +424,7 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
 
         best_match = None
         best_score = 0.0
+        ngram_matches = []  # Track all matches for this ngram
 
         # Only consider symbols that exist in the cache
         for symbol_name, symbol_info in known_symbols.items():
@@ -428,9 +434,23 @@ def _process_rules_based(text: str, known_symbols: Dict[str, Dict], effective_la
 
             score = fuzzy_match_symbol(ngram, aliases)
 
+            # Record match details for debugging
+            match_result = {
+                "ngram": ngram,
+                "symbol": symbol_name,
+                "score": score if score is not None else 0.0,
+                "aliases_used": aliases,
+                "matched": score is not None and score > 0.8,
+            }
+            ngram_matches.append(match_result)
+
             if score and score > best_score:
                 best_score = score
                 best_match = symbol_name
+
+        # Log n-gram comparison details for debugging
+        if ngram_matches:
+            debug_logger.log_ngram_comparison("rules_based_ngram_matching", [ngram], "multiple_symbols", [], ngram_matches)
 
         if best_match and best_match in known_symbols and best_match not in matched_symbols:
             # Find original case version in text for replacement
@@ -467,12 +487,23 @@ def _process_llm_first_hybrid(text: str, known_symbols: Dict[str, Dict], effecti
     Returns:
         Tuple of (processed_text, matched_symbols, unknown_mentions, lexicon_hits)
     """
+    from .debug_log import get_debug_logger
     from .llm_map import llm_preprocess_text
     from .progress import reporter
 
+    # Initialize debug logger
+    debug_logger = get_debug_logger(project_root)
+
     # Step 1: Filter relevant symbols for LLM processing
     reporter.sub_step_with_progress("Reconciliation model processing", "filtering relevant project symbols", 1, 4)
+    original_symbols = list(known_symbols.keys())
     relevant_symbols = _filter_relevant_symbols(text, known_symbols, max_symbols=50)
+
+    # Log symbol filtering details
+    debug_logger.log_symbol_filtering(
+        "hybrid_symbol_filtering", original_symbols, relevant_symbols, {"max_symbols": 50, "text": text, "effective_lang": effective_lang}
+    )
+
     reporter.complete_sub_step("Filtered relevant project symbols for reconciliation")
 
     if not relevant_symbols:
@@ -493,6 +524,10 @@ def _process_llm_first_hybrid(text: str, known_symbols: Dict[str, Dict], effecti
 
     # Step 4: Finalize reconciliation results
     reporter.sub_step_with_progress("Reconciliation model processing", "finalizing symbol reconciliation", 4, 4)
+
+    # Log reconciliation summary
+    debug_logger.log_reconciliation_summary(text, reconciled_text, matched_symbols, unknown_mentions, lexicon_hits)
+
     reporter.complete_sub_step("Finalized symbol reconciliation")
 
     return reconciled_text, matched_symbols, unknown_mentions, lexicon_hits
@@ -593,6 +628,11 @@ def _process_marked_text_with_rules(
 
     reporter.sub_step_with_progress("Processing marked symbols with rules", f"performing fuzzy matching on {len(ngrams)} keyword n-grams", 2, 2)
 
+    # Initialize debug logger for n-gram comparisons
+    from .debug_log import get_debug_logger
+
+    debug_logger = get_debug_logger(project_root)
+
     # Track improved matches for backticked keywords only
     improved_matches = []
 
@@ -602,6 +642,7 @@ def _process_marked_text_with_rules(
 
         best_match = None
         best_score = 0.0
+        ngram_matches = []  # Track all matches for this ngram
 
         # Only consider symbols that exist in the cache and aren't already matched
         for symbol_name, symbol_info in known_symbols.items():
@@ -614,9 +655,23 @@ def _process_marked_text_with_rules(
 
             score = fuzzy_match_symbol(ngram, aliases)
 
+            # Record match details for debugging
+            match_result = {
+                "ngram": ngram,
+                "symbol": symbol_name,
+                "score": score if score is not None else 0.0,
+                "aliases_used": aliases,
+                "matched": score is not None and score > 0.8,
+            }
+            ngram_matches.append(match_result)
+
             if score and score > best_score:
                 best_score = score
                 best_match = symbol_name
+
+        # Log n-gram comparison details for debugging
+        if ngram_matches:
+            debug_logger.log_ngram_comparison("marked_text_ngram_matching", [ngram], "multiple_symbols", [], ngram_matches)
 
         if best_match and best_match in known_symbols and best_match not in matched_symbols:
             # Map the n-gram back to its source marked phrase for replacement

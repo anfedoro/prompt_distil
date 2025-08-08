@@ -1269,5 +1269,69 @@ class TestClipboardFunctionality:
             _display_distillation_result(result, "standard", "markdown")
 
 
+class TestDebugLogging:
+    """Test debug logging functionality for reconcile_text hybrid mode."""
+
+    def test_debug_logger_initialization(self):
+        """Test that debug logger initializes correctly."""
+        import tempfile
+
+        from prompt_distil.core.debug_log import DebugLogger
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Test with debug disabled
+            logger_disabled = DebugLogger(temp_dir, enabled=False)
+            assert not logger_disabled.is_enabled()
+
+            # Test with debug enabled
+            logger_enabled = DebugLogger(temp_dir, enabled=True)
+            assert logger_enabled.is_enabled()
+
+            # Check that debug directory is created
+            debug_dir = Path(temp_dir) / ".prompt_distil" / "debug"
+            assert debug_dir.exists()
+
+    def test_debug_logging_with_environment_variable(self):
+        """Test debug logging enabled via environment variable."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.debug_log import is_debug_enabled
+
+        # Test without debug enabled
+        assert not is_debug_enabled()
+
+        # Test with debug enabled via environment
+        with patch.dict(os.environ, {"PD_DEBUG_RECONCILE": "1"}):
+            assert is_debug_enabled()
+
+    def test_debug_logging_disabled_by_default(self):
+        """Test that debug logging is disabled by default."""
+        import tempfile
+
+        from prompt_distil.core.reconcile import reconcile_text
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "symbols": [{"name": "delete_task", "kind": "function", "path": "tasks.py", "lineno": 10}],
+                "files": ["tasks.py"],
+            }
+            save_cache(temp_dir, cache_data)
+
+            # Run reconciliation without debug enabled
+            text = "Update the delete_task function"
+            reconciled, matched, unknown, lex_hits, unresolved = reconcile_text(text, temp_dir, "en", "hybrid")
+
+            # Check that debug logs were NOT created
+            debug_dir = Path(temp_dir) / ".prompt_distil" / "debug"
+            assert not debug_dir.exists() or len(list(debug_dir.iterdir())) == 0
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
