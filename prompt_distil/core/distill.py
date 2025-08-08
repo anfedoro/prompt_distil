@@ -52,7 +52,6 @@ class TranscriptDistiller:
         surface_hints: Optional[Dict] = None,
         target_language: Literal["en", "auto"] = "en",
         asr_language: str = "auto",
-        lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid",
     ) -> IRLite:
         """
         Convert transcript into structured IR-lite representation.
@@ -62,7 +61,6 @@ class TranscriptDistiller:
             surface_hints: Optional project surface information
             target_language: Target language for final prompts ("en" or "auto")
             asr_language: Language detected by ASR (or "auto")
-            lex_mode: Lexicon processing mode ("rules", "llm", "hybrid")
 
         Returns:
             Structured IRLite object
@@ -78,8 +76,8 @@ class TranscriptDistiller:
 
         # Step 2: Reconcile text with known symbols - includes LLM calls and n-gram search
         reporter.step("Invoking reconciliation model and performing symbol matching…")
-        reconciled_transcript, reconciled_identifiers, unknown_mentions, lexicon_hits, unresolved_terms = reconcile_text(
-            protected_transcript, self.project_root, asr_language, lex_mode
+        reconciled_transcript, reconciled_identifiers, unknown_mentions, unresolved_terms = reconcile_text(
+            protected_transcript, self.project_root, asr_language
         )
 
         # Step 3: Load symbol cache for context hints
@@ -89,11 +87,11 @@ class TranscriptDistiller:
         # Step 4: Prepare system and user prompts for distillation
         reporter.step("Preparing distillation prompts…")
         compact_hints = self._prepare_compact_hints(cache, surface_hints)
-        system_prompt = self._create_system_prompt(compact_hints, target_language, lex_mode)
+        system_prompt = self._create_system_prompt(compact_hints, target_language)
 
         # Step 5: Clean reconciled transcript before sending to distillation model
         reporter.step("Cleaning backtick symbols for distillation model…")
-        cleaned_transcript = self._clean_backticks_for_distillation(reconciled_transcript, lex_mode)
+        cleaned_transcript = self._clean_backticks_for_distillation(reconciled_transcript)
         user_prompt = self._create_user_prompt(cleaned_transcript)
         reporter.complete_sub_step("Cleaned backtick-enclosed words from prompt text")
 
@@ -118,7 +116,7 @@ class TranscriptDistiller:
                 # Add reconciled identifiers and unknown mentions to the data before creating IRLite
                 data["reconciled_identifiers"] = reconciled_identifiers
                 data["unknown_identifier_mentions"] = unknown_mentions
-                data["lexicon_hits"] = lexicon_hits
+                data["lexicon_hits"] = []
                 data["unresolved_terms"] = unresolved_terms
                 ir = IRLite(**data)
                 reporter.complete_sub_step("Parsed distillation model response into structured format")
@@ -151,7 +149,6 @@ class TranscriptDistiller:
         profile: str = "standard",
         target_language: Literal["en", "auto"] = "en",
         asr_language: str = "auto",
-        lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid",
     ) -> Dict:
         """
         Complete distillation pipeline from transcript to final prompt.
@@ -172,7 +169,7 @@ class TranscriptDistiller:
         surface_hints = self._gather_surface_hints()
 
         # Build IR-lite
-        ir = self.build_ir_lite(transcript, surface_hints, target_language, asr_language, lex_mode)
+        ir = self.build_ir_lite(transcript, surface_hints, target_language, asr_language)
 
         # Render all prompts
         reporter.step("Rendering final prompts…")
@@ -180,7 +177,7 @@ class TranscriptDistiller:
 
         # Create session passport
         reporter.step("Creating session summary…")
-        passport = self._create_session_passport(transcript, ir, surface_hints, target_language, asr_language, lex_mode)
+        passport = self._create_session_passport(transcript, ir, surface_hints, target_language, asr_language)
 
         return {"ir": ir, "prompts": prompts, "selected_prompt": prompts.get(profile, prompts["standard"]), "session_passport": passport}
 
@@ -213,9 +210,7 @@ class TranscriptDistiller:
 
         return hints
 
-    def _create_system_prompt(
-        self, compact_hints: Optional[Dict] = None, target_language: Literal["en", "auto"] = "en", lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid"
-    ) -> str:
+    def _create_system_prompt(self, compact_hints: Optional[Dict] = None, target_language: Literal["en", "auto"] = "en") -> str:
         """Create system prompt for transcript distillation."""
         base_prompt = """You are an expert at distilling noisy transcripts into structured intent representations for coding agents.
 
@@ -248,23 +243,12 @@ Guidelines:
 7. Don't include implementation advice - focus on WHAT, not HOW
 8. Use confidence scores (0.0-1.0) for known_entities based on clarity
 
-CRITICAL: Code Identifier Preservation"""
-
-        # Add mode-specific instructions for code identifier handling
-        if lex_mode == "llm":
-            base_prompt += """
-- Code identifiers are provided as clean text without backticks
-- Treat underscored words (like user_login, delete_task) as code entities
-- Do not add backticks or special formatting to code identifiers
-- Preserve code identifiers exactly as they appear in the transcript"""
-        else:
-            base_prompt += """
+CRITICAL: Code Identifier Preservation
 - Preserve backticked identifiers verbatim; do not translate, rewrite, or pluralize them
 - Treat them as code entities (functions/classes/files)
 - If transcript contains code-like tokens with underscores, keep them as-is
-- Code identifiers like `delete_task`, `login_handler` must remain exactly as written"""
+- Code identifiers like `delete_task`, `login_handler` must remain exactly as written
 
-        base_prompt += """
 
 LANGUAGE REQUIREMENTS:
 - Produce final prompts in """
@@ -367,7 +351,6 @@ Extract the information into the JSON schema format as instructed."""
         surface_hints: Optional[Dict] = None,
         target_language: Literal["en", "auto"] = "en",
         asr_language: str = "auto",
-        lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid",
     ) -> Dict:
         """
         Create a session passport summarizing processing decisions.
@@ -412,18 +395,15 @@ Extract the information into the JSON schema format as instructed."""
         # Get unknown mentions from IR
         unknown_mentions = ir.unknown_identifier_mentions
 
-        # Get lexicon hits from IR
+        # Get lexicon hits from IR (now empty as lexicon processing is removed)
         lexicon_hits = ir.lexicon_hits
 
         # Get additional data from IR
         unresolved_terms = ir.unresolved_terms
-        # Use lex_mode from function parameter since it's not stored in IR
 
-        # Determine effective lexicon language
-        from .lexicon import get_effective_language, get_stemmer
-
-        lexicon_lang, lang_detect_meta = get_effective_language(asr_language, transcript, str(self.project_root))
-        stemmer_lang = lexicon_lang if get_stemmer(lexicon_lang) else "none"
+        # Language detection simplified - no longer needed for reconciliation
+        lexicon_lang = asr_language if asr_language != "auto" else "en"
+        stemmer_lang = "none"  # Stemming no longer used
 
         return {
             "transcript_stats": transcript_stats,
@@ -439,11 +419,10 @@ Extract the information into the JSON schema format as instructed."""
             "asr_language": asr_language,
             "target_language": target_language,
             "lexicon_lang": lexicon_lang,
-            "lexicon_hits": lexicon_hits,
-            "lex_mode": lex_mode,
+            "lexicon_hits": [],
+            "lex_mode": "hybrid",
             "stemmer_lang": stemmer_lang,
             "unresolved_terms": unresolved_terms,
-            "lang_detect_meta": lang_detect_meta,
         }
 
     def _extract_preserved_identifiers(self, transcript: str, ir: IRLite) -> list[str]:
@@ -486,31 +465,24 @@ Extract the information into the JSON schema format as instructed."""
 
         return sorted(list(identifiers))
 
-    def _clean_backticks_for_distillation(self, text: str, lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid") -> str:
+    def _clean_backticks_for_distillation(self, text: str) -> str:
         """
         Clean backtick-enclosed words from text before sending to distillation model.
 
-        Behavior depends on lex_mode:
-        - LLM mode: Text should already be clean, no additional processing needed
-        - Hybrid/Rules mode: Removes backticks while preserving the identifiers
+        Removes backticks while preserving the identifiers for proper processing
+        by the distillation model.
 
         Args:
             text: Text with potential backtick-enclosed identifiers
-            lex_mode: Lexicon processing mode to determine cleaning behavior
 
         Returns:
-            Cleaned text appropriate for the distillation model
+            Cleaned text with backticks removed but identifiers preserved
         """
         import re
 
-        if lex_mode == "llm":
-            # In LLM-only mode, text should already be clean of backticks
-            # But ensure any remaining backticks are removed
-            cleaned_text = re.sub(r"`([^`]+)`", r"\1", text)
-        else:
-            # In hybrid/rules mode, remove backticks but preserve the enclosed content
-            # This ensures identifiers are clean for the distillation model
-            cleaned_text = re.sub(r"`([^`]+)`", r"\1", text)
+        # Remove backticks but preserve the enclosed content
+        # This ensures identifiers are clean for the distillation model
+        cleaned_text = re.sub(r"`([^`]+)`", r"\1", text)
 
         return cleaned_text
 
@@ -522,7 +494,6 @@ def build_ir_lite(
     project_root: str = ".",
     target_language: Literal["en", "auto"] = "en",
     asr_language: str = "auto",
-    lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid",
 ) -> IRLite:
     """
     Convenience function to build IR-lite from transcript.
@@ -537,7 +508,7 @@ def build_ir_lite(
         IRLite object
     """
     distiller = TranscriptDistiller(project_root)
-    return distiller.build_ir_lite(transcript, surface_hints, target_language, asr_language, lex_mode)
+    return distiller.build_ir_lite(transcript, surface_hints, target_language, asr_language)
 
 
 def render_prompts(ir: IRLite) -> Dict[str, str]:
@@ -560,7 +531,6 @@ def distill_transcript(
     project_root: str = ".",
     target_language: Literal["en", "auto"] = "en",
     asr_language: str = "auto",
-    lex_mode: Literal["rules", "llm", "hybrid"] = "hybrid",
 ) -> Dict:
     """
     Complete convenience function for transcript distillation.
@@ -575,4 +545,4 @@ def distill_transcript(
         Complete distillation results
     """
     distiller = TranscriptDistiller(project_root)
-    return distiller.distill_complete(transcript, profile, target_language, asr_language, lex_mode)
+    return distiller.distill_complete(transcript, profile, target_language, asr_language)

@@ -146,41 +146,6 @@ class ProjectSurface:
 
         return results
 
-    def read_file(self, path: str, max_bytes: int = 64_000) -> str:
-        """
-        Read file content with size limit.
-
-        Args:
-            path: Relative path to the file from project root
-            max_bytes: Maximum number of bytes to read
-
-        Returns:
-            File content as string
-
-        Raises:
-            SurfaceError: If file cannot be read or is too large
-        """
-        file_path = self.project_root / path
-
-        if not file_path.exists():
-            raise SurfaceError(f"File not found: {path}")
-
-        if not file_path.is_file():
-            raise SurfaceError(f"Path is not a file: {path}")
-
-        # Check file size
-        file_size = file_path.stat().st_size
-        if file_size > max_bytes:
-            raise SurfaceError(f"File too large: {file_size} bytes (max: {max_bytes})")
-
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return f.read()
-        except UnicodeDecodeError:
-            raise SurfaceError(f"File is not valid UTF-8 text: {path}")
-        except Exception as e:
-            raise SurfaceError(f"Failed to read file '{path}': {e}")
-
     def get_project_structure(self, max_depth: int = 3) -> Dict:
         """
         Get a high-level overview of project structure.
@@ -230,51 +195,6 @@ class ProjectSurface:
 
 
 # Convenience functions for simple use cases
-def list_files(pattern: Optional[str] = None, project_root: Optional[str] = None) -> List[str]:
-    """
-    Convenience function to list files.
-
-    Args:
-        pattern: Optional glob pattern
-        project_root: Optional project root directory
-
-    Returns:
-        List of relative file paths
-    """
-    surface = ProjectSurface(project_root)
-    return surface.list_files(pattern)
-
-
-def search_project(query: str, top_k: int = 5, project_root: Optional[str] = None) -> List[Dict]:
-    """
-    Convenience function to search project content.
-
-    Args:
-        query: Search query
-        top_k: Maximum results to return
-        project_root: Optional project root directory
-
-    Returns:
-        List of search results
-    """
-    surface = ProjectSurface(project_root)
-    return surface.search_project(query, top_k)
-
-
-def read_file(path: str, max_bytes: int = 64_000, project_root: Optional[str] = None) -> str:
-    """
-    Convenience function to read a file.
-
-    Args:
-        path: Relative path to file
-        max_bytes: Maximum bytes to read
-        project_root: Optional project root directory
-
-    Returns:
-        File content
-    """
-    surface = ProjectSurface(project_root)
-    return surface.read_file(path, max_bytes)
 
 
 def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, max_files: int = 1000, max_bytes: int = 200_000) -> Dict:

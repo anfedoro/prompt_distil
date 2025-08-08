@@ -41,7 +41,6 @@ def distill(
     profile: str = typer.Option("standard", "--profile", "-p", help="Rendering profile (short|std|standard|verbose)"),
     project_root: str = typer.Option(".", "--project-root", help="Project root directory for symbol cache and context"),
     output_format: str = typer.Option("rich", "--format", "-f", help="Output format (rich, markdown, json)"),
-    lex_mode: str = typer.Option("hybrid", "--lex-mode", help="Lexicon mode (rules|llm|hybrid)"),
     debug: bool = typer.Option(False, "--debug", help="Enable detailed debug logging for reconcile_text hybrid mode"),
 ):
     """
@@ -80,11 +79,6 @@ def distill(
             # Ensure text is not None at this point
             assert text is not None, "Text should not be None after validation"
 
-            # Validate lex_mode
-            if lex_mode not in ["rules", "llm", "hybrid"]:
-                console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
-                sys.exit(1)
-
             # Validate configuration
             validate_config()
 
@@ -99,7 +93,7 @@ def distill(
 
             # Begin distillation process with detailed status reporting
             reporter.step("Starting transcript distillation process…")
-            result = distill_transcript(text, profile, project_root, "en", "auto", lex_mode)
+            result = distill_transcript(text, profile, project_root, "en", "auto")
 
             # Display results
             reporter.step("Printing results…")
@@ -122,7 +116,6 @@ def from_audio(
     profile: str = typer.Option("standard", "--profile", "-p", help="Rendering profile (short|std|standard|verbose)"),
     project_root: str = typer.Option(".", "--project-root", help="Project root directory for symbol cache and context"),
     output_format: str = typer.Option("rich", "--format", "-f", help="Output format (rich, markdown, json)"),
-    lex_mode: str = typer.Option("hybrid", "--lex-mode", help="Lexicon mode (rules|llm|hybrid)"),
     debug: bool = typer.Option(False, "--debug", help="Enable detailed debug logging for reconcile_text hybrid mode"),
 ):
     """
@@ -137,11 +130,6 @@ def from_audio(
     try:
         # Initialize progress reporter
         with reporter.initialize(console, "Validating input…"):
-            # Validate input
-            if lex_mode not in ["rules", "llm", "hybrid"]:
-                console.print(f"[bold red]Error:[/bold red] Invalid lex-mode '{lex_mode}'. Must be one of: rules, llm, hybrid")
-                sys.exit(1)
-
             # Validate configuration
             validate_config()
 
@@ -186,7 +174,7 @@ def from_audio(
 
             # Begin distillation process with detailed status reporting
             reporter.step("Starting transcript distillation process…")
-            result = distill_transcript(transcript_text, profile, project_root, target_language, transcript_result.lang_hint, lex_mode)
+            result = distill_transcript(transcript_text, profile, project_root, target_language, transcript_result.lang_hint)
 
             # Update session passport with ASR language info
             result["session_passport"]["asr_language"] = transcript_result.lang_hint

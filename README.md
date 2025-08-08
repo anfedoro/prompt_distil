@@ -355,14 +355,14 @@ Enable detailed debug logging for reconcile_text hybrid mode operations:
 
 ```bash
 # Enable detailed debug logging via CLI flag
-uv run prompt-distil distill --text "fix the login function" --debug-reconcile
+uv run prompt-distil distill --text "fix the login function" --debug
 
 # Or enable via environment variable
 export PD_DEBUG_RECONCILE=1
 uv run prompt-distil distill --text "fix the login function"
 
 # Works with all commands
-uv run prompt-distil from-audio recording.wav --debug-reconcile
+uv run prompt-distil from-audio recording.wav --debug
 ```
 
 Debug logs are stored in `{project_root}/.prompt_distil/debug/session_YYYYMMDD_HHMMSS/` and include:
@@ -380,7 +380,7 @@ The tool includes several performance enhancements:
 - **Caching with LRU**: Lexicon loading, stemming, and alias generation are cached
 - **Optimized Fuzzy Matching**: Uses rapidfuzz instead of difflib for 10x speed improvement
 - **Hybrid Mode Optimization**: LLM processes only relevant symbols, then applies rules selectively
-- **Symbol Filtering**: Limits LLM candidate symbols to 50 most relevant matches
+- **Symbol Processing**: All project symbols passed to LLM for maximum multilingual context
 - **Bounded Scanning**: Cache limited to 1000 files and 200KB per file by default
 - **Debug Logging**: Comprehensive logging system for analyzing reconciliation behavior when enabled
 
@@ -421,7 +421,7 @@ The project follows Python best practices:
 - Requires OpenAI API key for both ASR and distillation
 - **Runtime deps**: snowballstemmer for stemming inflected forms; OpenAI API for LLM fallback; rapidfuzz for optimized fuzzy matching
 - Audio files limited to 25MB (Whisper API limit)
-- Cache limited to 1000 files and 200KB per file by default; LLM candidate symbols capped at 200
+- Cache limited to 1000 files and 200KB per file by default; LLM processes all project symbols for maximum multilingual context
 - Symbol reconciliation works best with Python projects; stemming supports ru/es/en
 - Cache stored under project root in `.prompt_distil/` directory
 - Safe reconciliation: only symbols in cache get backticked (enforced in all modes)

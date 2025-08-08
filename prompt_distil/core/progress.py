@@ -130,35 +130,6 @@ class ProgressReporter:
             # Print with indented checkmark to show it's a sub-step
             self._console.print(f"  [green]✓[/green] [dim]{message}[/dim]")
 
-    def is_active(self) -> bool:
-        """
-        Check if the reporter is currently active.
-
-        Returns:
-            True if reporter is initialized and active
-        """
-        return self._status is not None
-
-    def reset(self) -> None:
-        """Reset the reporter state."""
-        # Complete any remaining step
-        if self._current_step is not None and self._console is not None:
-            self._console.print(f"[green]✓[/green] [dim]{self._current_step}[/dim]")
-
-        self._status = None
-        self._console = None
-        self._completed_steps = []
-        self._current_step = None
-
-    def get_completed_steps(self) -> List[str]:
-        """
-        Get list of completed steps.
-
-        Returns:
-            List of completed step messages
-        """
-        return self._completed_steps.copy()
-
 
 # Global reporter instance
 reporter = ProgressReporter()
