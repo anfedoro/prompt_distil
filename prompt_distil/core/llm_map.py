@@ -50,8 +50,9 @@ def llm_preprocess_text(transcript: str, candidate_symbols: List[str]) -> str:
 
         reporter.sub_step_with_progress("LLM preprocessing", "analyzing text for potential symbols", 1, 2)
 
-        # Debug logging removed - only essential logging kept
+        # Log LLM request for debugging
         full_prompt = f"SYSTEM: {system_prompt}\n\nUSER: {user_prompt}"
+        debug_logger.log_llm_request(full_prompt, candidate_symbols)
 
         client = get_client()
 
@@ -67,7 +68,8 @@ def llm_preprocess_text(transcript: str, candidate_symbols: List[str]) -> str:
             # Return original text if empty response
             return transcript
 
-        # Debug logging removed - content processed directly
+        # Log LLM response for debugging
+        debug_logger.log_llm_response(content, transcript)
 
         reporter.sub_step_with_progress("LLM preprocessing", "extracting marked text", 2, 2)
         return content.strip()

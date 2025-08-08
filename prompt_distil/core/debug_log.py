@@ -49,6 +49,63 @@ class DebugLogger:
         """Check if debug logging is enabled."""
         return self.enabled
 
+    def log_llm_request(self, prompt: str, symbols: List[str]) -> None:
+        """
+        Log LLM request details.
+
+        Args:
+            prompt: Full prompt sent to LLM
+            symbols: List of candidate symbols provided
+        """
+        if not self.enabled:
+            return
+
+        timestamp = datetime.now().isoformat()
+        log_data = {
+            "timestamp": timestamp,
+            "session_id": self.session_id,
+            "step": "llm_request",
+            "type": "request",
+            "prompt": prompt,
+            "candidate_symbols": symbols,
+            "symbols_count": len(symbols),
+        }
+
+        filename = f"llm_request_{timestamp.replace(':', '-').replace('.', '_')}.json"
+        log_file = self.session_dir / filename
+
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(log_data, f, indent=2, ensure_ascii=False)
+
+    def log_llm_response(self, response_content: str, original_text: str) -> None:
+        """
+        Log LLM response details.
+
+        Args:
+            response_content: Raw response from LLM
+            original_text: Original input text for comparison
+        """
+        if not self.enabled:
+            return
+
+        timestamp = datetime.now().isoformat()
+        log_data = {
+            "timestamp": timestamp,
+            "session_id": self.session_id,
+            "step": "llm_response",
+            "type": "response",
+            "response_content": response_content,
+            "original_text": original_text,
+            "response_length": len(response_content),
+            "original_length": len(original_text),
+        }
+
+        filename = f"llm_response_{timestamp.replace(':', '-').replace('.', '_')}.json"
+        log_file = self.session_dir / filename
+
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(log_data, f, indent=2, ensure_ascii=False)
+
     def log_reconciliation_summary(
         self, original_text: str, reconciled_text: str, matched_symbols: List[str], unknown_mentions: List[str], lexicon_hits: List[str]
     ) -> None:
