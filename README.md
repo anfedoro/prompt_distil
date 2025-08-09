@@ -47,10 +47,83 @@ uv add openai pydantic>=2 typer>=0.12 python-dotenv rich
 
 # Add development dependencies (optional)
 uv add --dev pytest pytest-asyncio
-
-# Sync dependencies
-uv sync
 ```
+
+## Environment Variables
+
+Prompt Distiller supports several environment variables for customizing LLM behavior:
+
+### Model Configuration
+- **`LLM_MODEL`** (default: `gpt-4o-mini`): The LLM model to use for both reconciliation and distillation
+  - Examples: `gpt-4o-mini`, `gpt-4o`, `o1-preview`, `o1-mini`
+  - Replaces deprecated `DISTIL_MODEL`
+
+- **`IS_REASONING_MODEL`** (default: `false`): Set to `true` for reasoning models (o1-preview, o1-mini)
+  - Values: `true`, `false`, `1`, `0`, `yes`, `no`, `on`, `off`
+  - When `true`, automatically uses reasoning-compatible parameters
+  - When `false`, uses temperature and standard parameters
+
+### Response Tuning
+- **`REASONING_EFFORT`** (default: `low`): Controls reasoning model effort level
+  - Values: `minimal`, `low`, `medium`, `high`
+  - Lower values = faster responses, higher values = more thorough reasoning
+
+- **`VERBOSITY`** (default: `medium`): Controls response detail level
+  - Values: `low`, `medium`, `high`
+  - Automatically adjusted based on request type (reconciliation vs distillation)
+
+- **`MODEL_TEMPERATURE`** (default: `0.2`): Controls response randomness for standard models
+  - Range: `0.0` to `2.0`
+  - Lower values = more deterministic, higher values = more creative
+  - Automatically skipped for reasoning models
+
+### Debug Settings
+- **`PD_DEBUG`** (default: `0`): Enable detailed request/response logging
+  - Values: `0` (disabled), `1` (enabled)
+
+### Configuration Examples
+
+```bash
+# Standard model (GPT-4o) - fast responses
+export LLM_MODEL=gpt-4o-mini
+export IS_REASONING_MODEL=false
+export REASONING_EFFORT=minimal
+export VERBOSITY=low
+export MODEL_TEMPERATURE=0.1
+
+# Reasoning model (o1-preview) - automatic optimization
+export LLM_MODEL=o1-preview
+export IS_REASONING_MODEL=true
+export VERBOSITY=medium
+# Note: temperature automatically skipped for reasoning models
+
+# Balanced production settings
+export LLM_MODEL=gpt-4o
+export IS_REASONING_MODEL=false
+export REASONING_EFFORT=low
+export VERBOSITY=medium
+export MODEL_TEMPERATURE=0.2
+
+# Enable debug logging
+export PD_DEBUG=1
+```
+
+**Note:** Set `IS_REASONING_MODEL=true` for optimal performance with reasoning models. The system also includes automatic fallback detection for compatibility.
+
+### Reasoning Model Limitations
+
+When using reasoning models (like o1-preview, o1-mini):
+
+- **Set `IS_REASONING_MODEL=true`** for optimal performance (avoids unnecessary API calls)
+- **Automatic parameter handling**: `temperature` skipped, `max_completion_tokens` used instead of `max_tokens`
+- **Fallback detection**: System retries with compatible parameters if flag is set incorrectly
+- **Custom reasoning parameters**: Not yet supported by OpenAI API (prepared for future support)
+
+**Automatic error handling:**
+- Error 400 with `invalid_request_error` and `unsupported_value`/`unsupported_parameter`
+- Parameters: `temperature`, `max_tokens`
+
+See [docs/environment_variables.md](docs/environment_variables.md) for complete documentation.
 
 ## Configuration
 
@@ -107,15 +180,13 @@ uv run prompt-distil distill --project-root /path/to/app --text "update user_mod
 # Read transcript from file
 uv run prompt-distil distill --file transcript.txt --project-root .
 
-# Choose lexicon mode for symbol matching
-uv run prompt-distil distill --text "переписать тест удаления задачи" --lex-mode rules
-uv run prompt-distil distill --text "rewrite delete handler" --lex-mode hybrid  # default
-uv run prompt-distil distill --text "fix login controller" --lex-mode llm
-
-# Choose output profile (short, std/standard, verbose)
+# Different output profiles
 uv run prompt-distil distill --text "add logging to auth flow" --profile short
-uv run prompt-distil distill --text "add logging to auth flow" --profile std
+uv run prompt-distil distill --text "add logging to auth flow" --profile standard
 uv run prompt-distil distill --text "add logging to auth flow" --profile verbose
+
+# Enable debug logging
+uv run prompt-distil distill --text "fix the timer function" --debug
 
 # JSON output for programmatic use
 uv run prompt-distil distill --text "fix the bug" --format json
@@ -138,8 +209,8 @@ uv run prompt-distil from-audio recording.wav --project-root /path/to/app --tran
 # Keep final prompts in source language
 uv run prompt-distil from-audio recording.wav --final-lang auto
 
-# Use different lexicon modes for audio processing
-uv run prompt-distil from-audio russian_audio.wav --lex-mode hybrid --translate
+# Enable debug logging for audio processing
+uv run prompt-distil from-audio russian_audio.wav --debug --translate
 
 # Different output profile with project context
 uv run prompt-distil from-audio recording.wav --project-root . --profile verbose
@@ -331,7 +402,7 @@ The tool is structured into core modules:
 - **Session Tracking**: Reports project root, ASR/lexicon languages, stemmer info, processing mode, preserved/reconciled/unknown identifiers
 - **Enhanced Status Messages**: Persistent progress indicators with detailed sub-step reporting
 - **Performance Monitoring**: Optional timing information with `PD_DEBUG=1` environment variable
-- **Debug Logging**: Comprehensive reconciliation analysis with `PD_DEBUG_RECONCILE=1` or `--debug-reconcile`
+- **Debug Logging**: Comprehensive LLM request/response analysis with `PD_DEBUG=1` or `--debug`
 
 ## Debugging and Performance
 
@@ -358,7 +429,7 @@ Enable detailed debug logging for reconcile_text hybrid mode operations:
 uv run prompt-distil distill --text "fix the login function" --debug
 
 # Or enable via environment variable
-export PD_DEBUG_RECONCILE=1
+export PD_DEBUG=1
 uv run prompt-distil distill --text "fix the login function"
 
 # Works with all commands

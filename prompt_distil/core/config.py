@@ -39,9 +39,20 @@ class Config:
         return key
 
     @property
+    def llm_model(self) -> str:
+        """Get the LLM model name for both distillation and reconciliation (default: gpt-4o-mini)."""
+        return os.getenv("LLM_MODEL", os.getenv("DISTIL_MODEL", "gpt-4o-mini"))
+
+    @property
     def distil_model(self) -> str:
-        """Get the model name for distillation (default: gpt-4o)."""
-        return os.getenv("DISTIL_MODEL", "gpt-4.1-mini")
+        """Get the model name for distillation (deprecated, use llm_model)."""
+        return self.llm_model
+
+    @property
+    def is_reasoning_model(self) -> bool:
+        """Check if the configured model is a reasoning model (default: False)."""
+        value = os.getenv("IS_REASONING_MODEL", "false").lower()
+        return value in ("true", "1", "yes", "on")
 
     @property
     def asr_model(self) -> str:

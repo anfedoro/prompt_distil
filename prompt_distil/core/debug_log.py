@@ -10,7 +10,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class DebugLogger:
@@ -27,10 +27,12 @@ class DebugLogger:
 
         Args:
             project_root: Project root directory for log storage
-            enabled: Override debug enable flag, uses PD_DEBUG_RECONCILE env var if None
+            enabled: Override debug enable flag, uses PD_DEBUG env var if None
         """
         self.project_root = project_root
-        self.enabled = enabled if enabled is not None else os.getenv("PD_DEBUG_RECONCILE") == "1"
+        # Check PD_DEBUG first, fallback to PD_DEBUG_RECONCILE for backward compatibility
+        debug_enabled = os.getenv("PD_DEBUG", os.getenv("PD_DEBUG_RECONCILE", "0")) == "1"
+        self.enabled = enabled if enabled is not None else debug_enabled
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         if self.enabled:
@@ -106,6 +108,36 @@ class DebugLogger:
         with open(log_file, "w", encoding="utf-8") as f:
             json.dump(log_data, f, indent=2, ensure_ascii=False)
 
+    def log_validation_error(self, error: Exception, raw_data: Dict[str, Any], context: str = "validation") -> None:
+        """
+        Log detailed information about validation errors (e.g., IRLite creation failures).
+
+        Args:
+            error: The exception that occurred
+            raw_data: The raw data that failed validation
+            context: Context description for the error
+        """
+        if not self.enabled:
+            return
+
+        timestamp = datetime.now().isoformat()
+        log_data = {
+            "timestamp": timestamp,
+            "session_id": self.session_id,
+            "step": f"{context}_validation_error",
+            "type": "validation_error",
+            "error": str(error),
+            "error_type": type(error).__name__,
+            "raw_data": raw_data,
+            "validation_errors": getattr(error, "errors", lambda: [])() if hasattr(error, "errors") else [],
+        }
+
+        filename = f"{context}_validation_error_{timestamp.replace(':', '-').replace('.', '_')}.json"
+        log_file = self.session_dir / filename
+
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(log_data, f, indent=2, ensure_ascii=False, default=str)
+
     def log_reconciliation_summary(
         self, original_text: str, reconciled_text: str, matched_symbols: List[str], unknown_mentions: List[str], lexicon_hits: List[str]
     ) -> None:
@@ -174,6 +206,6 @@ def is_debug_enabled() -> bool:
     Check if debug logging is enabled via environment variable.
 
     Returns:
-        True if PD_DEBUG_RECONCILE=1 is set
+        True if PD_DEBUG=1 is set (or PD_DEBUG_RECONCILE=1 for backward compatibility)
     """
-    return os.getenv("PD_DEBUG_RECONCILE") == "1"
+    return os.getenv("PD_DEBUG", os.getenv("PD_DEBUG_RECONCILE", "0")) == "1"

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2025-08-08T22:57:44.526267",
+  "generated_at": "2025-08-09T12:21:30.802011",
   "root": "/Users/anfedoro/repositories/prompt_distil",
   "globs": [
     "**/*.py"
@@ -27,9 +27,14 @@
       "size": 1078
     },
     {
+      "path": "prompt_distil/core/llm_map.py",
+      "mtime": 1754727532.2787275,
+      "size": 2025
+    },
+    {
       "path": "prompt_distil/core/config.py",
-      "mtime": 1754496741.9735942,
-      "size": 2526
+      "mtime": 1754729993.2590835,
+      "size": 2994
     },
     {
       "path": "prompt_distil/core/types.py",
@@ -37,18 +42,8 @@
       "size": 3323
     },
     {
-      "path": "prompt_distil/core/debug_log.py",
-      "mtime": 1754681157.036133,
-      "size": 4142
-    },
-    {
-      "path": "prompt_distil/core/llm_map.py",
-      "mtime": 1754681398.7039692,
-      "size": 4745
-    },
-    {
       "path": "prompt_distil/core/progress.py",
-      "mtime": 1754681428.4817843,
+      "mtime": 1754684013.6370986,
       "size": 4956
     },
     {
@@ -58,8 +53,18 @@
     },
     {
       "path": "prompt_distil/core/reconcile.py",
-      "mtime": 1754680813.7973146,
+      "mtime": 1754684013.6373103,
       "size": 6567
+    },
+    {
+      "path": "examples/environment_variables_demo.py",
+      "mtime": 1754728259.403689,
+      "size": 6642
+    },
+    {
+      "path": "prompt_distil/core/debug_log.py",
+      "mtime": 1754729638.1080694,
+      "size": 7261
     },
     {
       "path": "prompt_distil/core/prompt.py",
@@ -68,28 +73,28 @@
     },
     {
       "path": "prompt_distil/core/surface.py",
-      "mtime": 1754681517.8022676,
+      "mtime": 1754684013.6375337,
       "size": 12296
     },
     {
       "path": "prompt_distil/main.py",
-      "mtime": 1754676881.0598319,
-      "size": 16340
+      "mtime": 1754731134.331478,
+      "size": 15784
     },
     {
       "path": "prompt_distil/core/distill.py",
-      "mtime": 1754680144.130399,
-      "size": 20612
+      "mtime": 1754731206.616674,
+      "size": 17424
+    },
+    {
+      "path": "prompt_distil/core/llm_handler.py",
+      "mtime": 1754730011.206097,
+      "size": 20126
     },
     {
       "path": "tests/test_basic.py",
-      "mtime": 1754682683.9542053,
-      "size": 46994
-    },
-    {
-      "path": "tests/test_basic_backup.py",
-      "mtime": 1754682318.3391638,
-      "size": 49055
+      "mtime": 1754730147.2192173,
+      "size": 69035
     }
   ],
   "symbols": [
@@ -104,6 +109,30 @@
       "kind": "function",
       "path": "prompt_distil/core/timing.py",
       "lineno": 34
+    },
+    {
+      "name": "LLMMapError",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 13
+    },
+    {
+      "name": "llm_preprocess_text",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 19
+    },
+    {
+      "name": "_create_preprocessing_system_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 50
+    },
+    {
+      "name": "_create_preprocessing_user_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_map.py",
+      "lineno": 58
     },
     {
       "name": "ConfigError",
@@ -127,13 +156,13 @@
       "name": "get_client",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
-      "lineno": 67
+      "lineno": 78
     },
     {
       "name": "validate_config",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
-      "lineno": 89
+      "lineno": 100
     },
     {
       "name": "__init__",
@@ -148,28 +177,40 @@
       "lineno": 34
     },
     {
-      "name": "distil_model",
+      "name": "llm_model",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
       "lineno": 42
     },
     {
-      "name": "asr_model",
+      "name": "distil_model",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
       "lineno": 47
     },
     {
-      "name": "openai_timeout",
+      "name": "is_reasoning_model",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
       "lineno": 52
     },
     {
+      "name": "asr_model",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 58
+    },
+    {
+      "name": "openai_timeout",
+      "kind": "function",
+      "path": "prompt_distil/core/config.py",
+      "lineno": 63
+    },
+    {
       "name": "max_retries",
       "kind": "function",
       "path": "prompt_distil/core/config.py",
-      "lineno": 57
+      "lineno": 68
     },
     {
       "name": "KnownEntity",
@@ -200,72 +241,6 @@
       "kind": "class",
       "path": "prompt_distil/core/types.py",
       "lineno": 69
-    },
-    {
-      "name": "DebugLogger",
-      "kind": "class",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 16
-    },
-    {
-      "name": "get_debug_logger",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 99
-    },
-    {
-      "name": "is_debug_enabled",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 115
-    },
-    {
-      "name": "__init__",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 24
-    },
-    {
-      "name": "_setup_log_directory",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 39
-    },
-    {
-      "name": "is_enabled",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 48
-    },
-    {
-      "name": "log_reconciliation_summary",
-      "kind": "function",
-      "path": "prompt_distil/core/debug_log.py",
-      "lineno": 52
-    },
-    {
-      "name": "LLMMapError",
-      "kind": "class",
-      "path": "prompt_distil/core/llm_map.py",
-      "lineno": 13
-    },
-    {
-      "name": "llm_preprocess_text",
-      "kind": "function",
-      "path": "prompt_distil/core/llm_map.py",
-      "lineno": 19
-    },
-    {
-      "name": "_create_preprocessing_system_prompt",
-      "kind": "function",
-      "path": "prompt_distil/core/llm_map.py",
-      "lineno": 80
-    },
-    {
-      "name": "_create_preprocessing_user_prompt",
-      "kind": "function",
-      "path": "prompt_distil/core/llm_map.py",
-      "lineno": 122
     },
     {
       "name": "ProgressReporter",
@@ -410,6 +385,108 @@
       "kind": "function",
       "path": "prompt_distil/core/reconcile.py",
       "lineno": 160
+    },
+    {
+      "name": "print_current_settings",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 18
+    },
+    {
+      "name": "demo_reconciliation_with_settings",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 30
+    },
+    {
+      "name": "demo_different_configurations",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 47
+    },
+    {
+      "name": "demo_reasoning_model_parameters",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 86
+    },
+    {
+      "name": "demo_with_debug_logging",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 111
+    },
+    {
+      "name": "print_usage_examples",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 144
+    },
+    {
+      "name": "main",
+      "kind": "function",
+      "path": "examples/environment_variables_demo.py",
+      "lineno": 164
+    },
+    {
+      "name": "DebugLogger",
+      "kind": "class",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 16
+    },
+    {
+      "name": "get_debug_logger",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 186
+    },
+    {
+      "name": "is_debug_enabled",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 202
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 24
+    },
+    {
+      "name": "_setup_log_directory",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 39
+    },
+    {
+      "name": "is_enabled",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 48
+    },
+    {
+      "name": "log_llm_request",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 52
+    },
+    {
+      "name": "log_llm_response",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 80
+    },
+    {
+      "name": "log_validation_error",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 109
+    },
+    {
+      "name": "log_reconciliation_summary",
+      "kind": "function",
+      "path": "prompt_distil/core/debug_log.py",
+      "lineno": 139
     },
     {
       "name": "PromptRenderer",
@@ -571,19 +648,19 @@
       "name": "build_ir_lite",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 491
+      "lineno": 411
     },
     {
       "name": "render_prompts",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 514
+      "lineno": 434
     },
     {
       "name": "distill_transcript",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 528
+      "lineno": 448
     },
     {
       "name": "__init__",
@@ -601,67 +678,163 @@
       "name": "render_prompts",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 134
+      "lineno": 154
     },
     {
       "name": "distill_complete",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 146
+      "lineno": 166
     },
     {
       "name": "_prepare_compact_hints",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 184
-    },
-    {
-      "name": "_create_system_prompt",
-      "kind": "function",
-      "path": "prompt_distil/core/distill.py",
-      "lineno": 213
-    },
-    {
-      "name": "_create_user_prompt",
-      "kind": "function",
-      "path": "prompt_distil/core/distill.py",
-      "lineno": 271
-    },
-    {
-      "name": "_format_compact_hints",
-      "kind": "function",
-      "path": "prompt_distil/core/distill.py",
-      "lineno": 280
+      "lineno": 204
     },
     {
       "name": "_gather_surface_hints",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 301
+      "lineno": 233
     },
     {
       "name": "_format_surface_hints",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 324
+      "lineno": 256
     },
     {
       "name": "_create_session_passport",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 347
+      "lineno": 279
     },
     {
       "name": "_extract_preserved_identifiers",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 428
+      "lineno": 348
     },
     {
       "name": "_clean_backticks_for_distillation",
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
-      "lineno": 468
+      "lineno": 388
+    },
+    {
+      "name": "ReasoningModelError",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 19
+    },
+    {
+      "name": "get_env_reasoning_effort",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 25
+    },
+    {
+      "name": "get_env_verbosity",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 35
+    },
+    {
+      "name": "get_env_model_temperature",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 45
+    },
+    {
+      "name": "is_reasoning_model_error",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 58
+    },
+    {
+      "name": "get_reasoning_model_parameters",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 112
+    },
+    {
+      "name": "adjust_llm_params_for_reasoning_model",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 130
+    },
+    {
+      "name": "make_llm_request_with_reasoning_fallback",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 162
+    },
+    {
+      "name": "LLMHandlerError",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 201
+    },
+    {
+      "name": "LLMHandler",
+      "kind": "class",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 207
+    },
+    {
+      "name": "get_llm_handler",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 501
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 215
+    },
+    {
+      "name": "make_reconciliation_request",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 226
+    },
+    {
+      "name": "make_distillation_request",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 291
+    },
+    {
+      "name": "_create_reconciliation_system_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 359
+    },
+    {
+      "name": "_create_reconciliation_user_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 400
+    },
+    {
+      "name": "_create_distillation_system_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 408
+    },
+    {
+      "name": "_create_distillation_user_prompt",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 466
+    },
+    {
+      "name": "_format_compact_hints",
+      "kind": "function",
+      "path": "prompt_distil/core/llm_handler.py",
+      "lineno": 475
     },
     {
       "name": "TestTypes",
@@ -685,55 +858,79 @@
       "name": "TestProjectSurface",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 161
+      "lineno": 169
     },
     {
       "name": "TestCodeIdentifierProtection",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 213
+      "lineno": 221
     },
     {
       "name": "TestSymbolCache",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 278
+      "lineno": 291
     },
     {
       "name": "TestProjectRootIntegration",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 423
+      "lineno": 436
     },
     {
       "name": "TestMultilingualLexicon",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 550
+      "lineno": 563
     },
     {
       "name": "TestProgressReporter",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 621
+      "lineno": 634
     },
     {
       "name": "TestOptimizedReconciliation",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 723
+      "lineno": 736
     },
     {
       "name": "TestClipboardFunctionality",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 998
+      "lineno": 1011
+    },
+    {
+      "name": "TestLLMHandler",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1077
+    },
+    {
+      "name": "TestReasoningModelHandler",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1197
+    },
+    {
+      "name": "TestIRLiteValidation",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1352
+    },
+    {
+      "name": "TestReasoningModelConfiguration",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1446
     },
     {
       "name": "TestDebugLogging",
       "kind": "class",
       "path": "tests/test_basic.py",
-      "lineno": 1064
+      "lineno": 1549
     },
     {
       "name": "test_known_entity_creation",
@@ -823,223 +1020,373 @@
       "name": "test_surface_initialization_current_dir",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 164
+      "lineno": 172
     },
     {
       "name": "test_list_files_basic",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 169
+      "lineno": 177
     },
     {
       "name": "test_get_project_structure",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 178
+      "lineno": 186
     },
     {
       "name": "test_validate_audio_format",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 189
+      "lineno": 197
     },
     {
       "name": "test_transcript_type",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 200
+      "lineno": 208
     },
     {
       "name": "test_protect_code_identifiers_with_underscores",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 216
+      "lineno": 224
     },
     {
       "name": "test_protect_code_identifiers_whitelist",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 226
+      "lineno": 234
     },
     {
       "name": "test_protect_code_identifiers_already_protected",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 236
+      "lineno": 244
     },
     {
       "name": "test_protect_code_identifiers_mixed_case",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 246
+      "lineno": 254
     },
     {
       "name": "test_protect_code_identifiers_no_matches",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 255
+      "lineno": 263
     },
     {
       "name": "test_target_language_support",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 263
+      "lineno": 271
     },
     {
       "name": "test_normalize_text",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 281
+      "lineno": 294
     },
     {
       "name": "test_fuzzy_match_symbol",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 291
+      "lineno": 304
     },
     {
       "name": "test_reconcile_text_basic",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 313
+      "lineno": 326
     },
     {
       "name": "test_reconcile_text_context_rules",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 350
+      "lineno": 363
     },
     {
       "name": "test_cache_structure",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 382
+      "lineno": 395
     },
     {
       "name": "test_project_root_cache_path",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 426
+      "lineno": 439
     },
     {
       "name": "test_safe_reconciliation_with_cache",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 455
+      "lineno": 468
     },
     {
       "name": "test_safe_reconciliation_without_cache",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 495
+      "lineno": 508
     },
     {
       "name": "test_related_section_no_placeholders",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 511
+      "lineno": 524
     },
     {
       "name": "test_project_root_parameter_passing",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 534
+      "lineno": 547
     },
     {
       "name": "test_reconcile_text_default_hybrid",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 553
+      "lineno": 566
     },
     {
       "name": "test_lex_mode_hybrid",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 584
+      "lineno": 597
     },
     {
       "name": "test_global_reporter_instance",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 624
+      "lineno": 637
     },
     {
       "name": "test_detailed_reconciliation_progress",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 636
+      "lineno": 649
     },
     {
       "name": "test_hybrid_mode_reconciliation_progress",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 676
+      "lineno": 689
     },
     {
       "name": "test_hybrid_mode_processing",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 726
+      "lineno": 739
     },
     {
       "name": "test_hybrid_mode_processing_logic",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 772
+      "lineno": 785
     },
     {
       "name": "test_marked_text_processing_with_rules",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 811
+      "lineno": 824
     },
     {
       "name": "test_optimized_hybrid_vs_traditional_hybrid",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 849
+      "lineno": 862
     },
     {
       "name": "test_ngram_search_after_llm_processing",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 902
+      "lineno": 915
     },
     {
       "name": "test_ngrams_only_from_llm_keywords",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 952
+      "lineno": 965
     },
     {
       "name": "test_clipboard_copying_with_mock",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 1001
+      "lineno": 1014
     },
     {
       "name": "test_clipboard_error_handling",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 1040
+      "lineno": 1053
+    },
+    {
+      "name": "test_llm_handler_initialization",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1080
+    },
+    {
+      "name": "test_global_llm_handler_instance",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1092
+    },
+    {
+      "name": "test_reconciliation_request_with_symbols",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1103
+    },
+    {
+      "name": "test_reconciliation_request_empty_input",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1139
+    },
+    {
+      "name": "test_distillation_request_success",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1153
+    },
+    {
+      "name": "test_distillation_request_invalid_json",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1174
+    },
+    {
+      "name": "test_reasoning_model_error_detection",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1200
+    },
+    {
+      "name": "test_reasoning_model_parameters",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1232
+    },
+    {
+      "name": "test_environment_variable_functions",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1257
+    },
+    {
+      "name": "test_parameter_adjustment",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1282
+    },
+    {
+      "name": "test_llm_request_with_fallback_success",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1302
+    },
+    {
+      "name": "test_llm_request_with_fallback_retry",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1319
+    },
+    {
+      "name": "test_irlite_validation_error_logging",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1355
+    },
+    {
+      "name": "test_irlite_validation_with_valid_data",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1405
+    },
+    {
+      "name": "test_reasoning_model_config_properties",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1449
+    },
+    {
+      "name": "test_llm_model_backward_compatibility",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1480
+    },
+    {
+      "name": "test_reasoning_model_parameter_selection",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1499
     },
     {
       "name": "test_debug_logger_initialization",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 1067
+      "lineno": 1552
     },
     {
       "name": "test_debug_logging_with_environment_variable",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 1086
+      "lineno": 1571
     },
     {
       "name": "test_debug_logging_disabled_by_default",
       "kind": "function",
       "path": "tests/test_basic.py",
-      "lineno": 1100
+      "lineno": 1585
+    },
+    {
+      "name": "MockTemperatureError",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1205
+    },
+    {
+      "name": "MockMaxTokensError",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1215
+    },
+    {
+      "name": "RegularError",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1225
+    },
+    {
+      "name": "MockReasoningError",
+      "kind": "class",
+      "path": "tests/test_basic.py",
+      "lineno": 1326
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1206
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1216
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1226
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "tests/test_basic.py",
+      "lineno": 1327
     }
   ],
   "inverted_index": {
@@ -1048,6 +1395,18 @@
     ],
     "wrapper": [
       "prompt_distil/core/timing.py#L34"
+    ],
+    "LLMMapError": [
+      "prompt_distil/core/llm_map.py#L13"
+    ],
+    "llm_preprocess_text": [
+      "prompt_distil/core/llm_map.py#L19"
+    ],
+    "_create_preprocessing_system_prompt": [
+      "prompt_distil/core/llm_map.py#L50"
+    ],
+    "_create_preprocessing_user_prompt": [
+      "prompt_distil/core/llm_map.py#L58"
     ],
     "ConfigError": [
       "prompt_distil/core/config.py#L15"
@@ -1059,34 +1418,45 @@
       "prompt_distil/core/config.py#L27"
     ],
     "get_client": [
-      "prompt_distil/core/config.py#L67"
+      "prompt_distil/core/config.py#L78"
     ],
     "validate_config": [
-      "prompt_distil/core/config.py#L89"
+      "prompt_distil/core/config.py#L100"
     ],
     "__init__": [
       "prompt_distil/core/config.py#L30",
-      "prompt_distil/core/debug_log.py#L24",
       "prompt_distil/core/progress.py#L23",
       "prompt_distil/core/speech.py#L94",
+      "prompt_distil/core/debug_log.py#L24",
       "prompt_distil/core/prompt.py#L24",
       "prompt_distil/core/surface.py#L36",
-      "prompt_distil/core/distill.py#L36"
+      "prompt_distil/core/distill.py#L36",
+      "prompt_distil/core/llm_handler.py#L215",
+      "tests/test_basic.py#L1206",
+      "tests/test_basic.py#L1216",
+      "tests/test_basic.py#L1226",
+      "tests/test_basic.py#L1327"
     ],
     "openai_api_key": [
       "prompt_distil/core/config.py#L34"
     ],
-    "distil_model": [
+    "llm_model": [
       "prompt_distil/core/config.py#L42"
     ],
-    "asr_model": [
+    "distil_model": [
       "prompt_distil/core/config.py#L47"
     ],
-    "openai_timeout": [
+    "is_reasoning_model": [
       "prompt_distil/core/config.py#L52"
     ],
+    "asr_model": [
+      "prompt_distil/core/config.py#L58"
+    ],
+    "openai_timeout": [
+      "prompt_distil/core/config.py#L63"
+    ],
     "max_retries": [
-      "prompt_distil/core/config.py#L57"
+      "prompt_distil/core/config.py#L68"
     ],
     "KnownEntity": [
       "prompt_distil/core/types.py#L13"
@@ -1102,36 +1472,6 @@
     ],
     "SurfaceHint": [
       "prompt_distil/core/types.py#L69"
-    ],
-    "DebugLogger": [
-      "prompt_distil/core/debug_log.py#L16"
-    ],
-    "get_debug_logger": [
-      "prompt_distil/core/debug_log.py#L99"
-    ],
-    "is_debug_enabled": [
-      "prompt_distil/core/debug_log.py#L115"
-    ],
-    "_setup_log_directory": [
-      "prompt_distil/core/debug_log.py#L39"
-    ],
-    "is_enabled": [
-      "prompt_distil/core/debug_log.py#L48"
-    ],
-    "log_reconciliation_summary": [
-      "prompt_distil/core/debug_log.py#L52"
-    ],
-    "LLMMapError": [
-      "prompt_distil/core/llm_map.py#L13"
-    ],
-    "llm_preprocess_text": [
-      "prompt_distil/core/llm_map.py#L19"
-    ],
-    "_create_preprocessing_system_prompt": [
-      "prompt_distil/core/llm_map.py#L80"
-    ],
-    "_create_preprocessing_user_prompt": [
-      "prompt_distil/core/llm_map.py#L122"
     ],
     "ProgressReporter": [
       "prompt_distil/core/progress.py#L14"
@@ -1196,6 +1536,54 @@
     ],
     "_extract_symbols_from_llm_output": [
       "prompt_distil/core/reconcile.py#L160"
+    ],
+    "print_current_settings": [
+      "examples/environment_variables_demo.py#L18"
+    ],
+    "demo_reconciliation_with_settings": [
+      "examples/environment_variables_demo.py#L30"
+    ],
+    "demo_different_configurations": [
+      "examples/environment_variables_demo.py#L47"
+    ],
+    "demo_reasoning_model_parameters": [
+      "examples/environment_variables_demo.py#L86"
+    ],
+    "demo_with_debug_logging": [
+      "examples/environment_variables_demo.py#L111"
+    ],
+    "print_usage_examples": [
+      "examples/environment_variables_demo.py#L144"
+    ],
+    "main": [
+      "examples/environment_variables_demo.py#L164"
+    ],
+    "DebugLogger": [
+      "prompt_distil/core/debug_log.py#L16"
+    ],
+    "get_debug_logger": [
+      "prompt_distil/core/debug_log.py#L186"
+    ],
+    "is_debug_enabled": [
+      "prompt_distil/core/debug_log.py#L202"
+    ],
+    "_setup_log_directory": [
+      "prompt_distil/core/debug_log.py#L39"
+    ],
+    "is_enabled": [
+      "prompt_distil/core/debug_log.py#L48"
+    ],
+    "log_llm_request": [
+      "prompt_distil/core/debug_log.py#L52"
+    ],
+    "log_llm_response": [
+      "prompt_distil/core/debug_log.py#L80"
+    ],
+    "log_validation_error": [
+      "prompt_distil/core/debug_log.py#L109"
+    ],
+    "log_reconciliation_summary": [
+      "prompt_distil/core/debug_log.py#L139"
     ],
     "PromptRenderer": [
       "prompt_distil/core/prompt.py#L14"
@@ -1270,45 +1658,90 @@
       "prompt_distil/core/distill.py#L26"
     ],
     "build_ir_lite": [
-      "prompt_distil/core/distill.py#L491",
+      "prompt_distil/core/distill.py#L411",
       "prompt_distil/core/distill.py#L49"
     ],
     "render_prompts": [
-      "prompt_distil/core/distill.py#L514",
-      "prompt_distil/core/distill.py#L134"
+      "prompt_distil/core/distill.py#L434",
+      "prompt_distil/core/distill.py#L154"
     ],
     "distill_transcript": [
-      "prompt_distil/core/distill.py#L528"
+      "prompt_distil/core/distill.py#L448"
     ],
     "distill_complete": [
-      "prompt_distil/core/distill.py#L146"
+      "prompt_distil/core/distill.py#L166"
     ],
     "_prepare_compact_hints": [
-      "prompt_distil/core/distill.py#L184"
-    ],
-    "_create_system_prompt": [
-      "prompt_distil/core/distill.py#L213"
-    ],
-    "_create_user_prompt": [
-      "prompt_distil/core/distill.py#L271"
-    ],
-    "_format_compact_hints": [
-      "prompt_distil/core/distill.py#L280"
+      "prompt_distil/core/distill.py#L204"
     ],
     "_gather_surface_hints": [
-      "prompt_distil/core/distill.py#L301"
+      "prompt_distil/core/distill.py#L233"
     ],
     "_format_surface_hints": [
-      "prompt_distil/core/distill.py#L324"
+      "prompt_distil/core/distill.py#L256"
     ],
     "_create_session_passport": [
-      "prompt_distil/core/distill.py#L347"
+      "prompt_distil/core/distill.py#L279"
     ],
     "_extract_preserved_identifiers": [
-      "prompt_distil/core/distill.py#L428"
+      "prompt_distil/core/distill.py#L348"
     ],
     "_clean_backticks_for_distillation": [
-      "prompt_distil/core/distill.py#L468"
+      "prompt_distil/core/distill.py#L388"
+    ],
+    "ReasoningModelError": [
+      "prompt_distil/core/llm_handler.py#L19"
+    ],
+    "get_env_reasoning_effort": [
+      "prompt_distil/core/llm_handler.py#L25"
+    ],
+    "get_env_verbosity": [
+      "prompt_distil/core/llm_handler.py#L35"
+    ],
+    "get_env_model_temperature": [
+      "prompt_distil/core/llm_handler.py#L45"
+    ],
+    "is_reasoning_model_error": [
+      "prompt_distil/core/llm_handler.py#L58"
+    ],
+    "get_reasoning_model_parameters": [
+      "prompt_distil/core/llm_handler.py#L112"
+    ],
+    "adjust_llm_params_for_reasoning_model": [
+      "prompt_distil/core/llm_handler.py#L130"
+    ],
+    "make_llm_request_with_reasoning_fallback": [
+      "prompt_distil/core/llm_handler.py#L162"
+    ],
+    "LLMHandlerError": [
+      "prompt_distil/core/llm_handler.py#L201"
+    ],
+    "LLMHandler": [
+      "prompt_distil/core/llm_handler.py#L207"
+    ],
+    "get_llm_handler": [
+      "prompt_distil/core/llm_handler.py#L501"
+    ],
+    "make_reconciliation_request": [
+      "prompt_distil/core/llm_handler.py#L226"
+    ],
+    "make_distillation_request": [
+      "prompt_distil/core/llm_handler.py#L291"
+    ],
+    "_create_reconciliation_system_prompt": [
+      "prompt_distil/core/llm_handler.py#L359"
+    ],
+    "_create_reconciliation_user_prompt": [
+      "prompt_distil/core/llm_handler.py#L400"
+    ],
+    "_create_distillation_system_prompt": [
+      "prompt_distil/core/llm_handler.py#L408"
+    ],
+    "_create_distillation_user_prompt": [
+      "prompt_distil/core/llm_handler.py#L466"
+    ],
+    "_format_compact_hints": [
+      "prompt_distil/core/llm_handler.py#L475"
     ],
     "TestTypes": [
       "tests/test_basic.py#L17"
@@ -1320,31 +1753,43 @@
       "tests/test_basic.py#L143"
     ],
     "TestProjectSurface": [
-      "tests/test_basic.py#L161"
+      "tests/test_basic.py#L169"
     ],
     "TestCodeIdentifierProtection": [
-      "tests/test_basic.py#L213"
+      "tests/test_basic.py#L221"
     ],
     "TestSymbolCache": [
-      "tests/test_basic.py#L278"
+      "tests/test_basic.py#L291"
     ],
     "TestProjectRootIntegration": [
-      "tests/test_basic.py#L423"
+      "tests/test_basic.py#L436"
     ],
     "TestMultilingualLexicon": [
-      "tests/test_basic.py#L550"
+      "tests/test_basic.py#L563"
     ],
     "TestProgressReporter": [
-      "tests/test_basic.py#L621"
+      "tests/test_basic.py#L634"
     ],
     "TestOptimizedReconciliation": [
-      "tests/test_basic.py#L723"
+      "tests/test_basic.py#L736"
     ],
     "TestClipboardFunctionality": [
-      "tests/test_basic.py#L998"
+      "tests/test_basic.py#L1011"
+    ],
+    "TestLLMHandler": [
+      "tests/test_basic.py#L1077"
+    ],
+    "TestReasoningModelHandler": [
+      "tests/test_basic.py#L1197"
+    ],
+    "TestIRLiteValidation": [
+      "tests/test_basic.py#L1352"
+    ],
+    "TestReasoningModelConfiguration": [
+      "tests/test_basic.py#L1446"
     ],
     "TestDebugLogging": [
-      "tests/test_basic.py#L1064"
+      "tests/test_basic.py#L1549"
     ],
     "test_known_entity_creation": [
       "tests/test_basic.py#L20"
@@ -1389,115 +1834,178 @@
       "tests/test_basic.py#L151"
     ],
     "test_surface_initialization_current_dir": [
-      "tests/test_basic.py#L164"
+      "tests/test_basic.py#L172"
     ],
     "test_list_files_basic": [
-      "tests/test_basic.py#L169"
+      "tests/test_basic.py#L177"
     ],
     "test_get_project_structure": [
-      "tests/test_basic.py#L178"
+      "tests/test_basic.py#L186"
     ],
     "test_validate_audio_format": [
-      "tests/test_basic.py#L189"
+      "tests/test_basic.py#L197"
     ],
     "test_transcript_type": [
-      "tests/test_basic.py#L200"
+      "tests/test_basic.py#L208"
     ],
     "test_protect_code_identifiers_with_underscores": [
-      "tests/test_basic.py#L216"
+      "tests/test_basic.py#L224"
     ],
     "test_protect_code_identifiers_whitelist": [
-      "tests/test_basic.py#L226"
+      "tests/test_basic.py#L234"
     ],
     "test_protect_code_identifiers_already_protected": [
-      "tests/test_basic.py#L236"
+      "tests/test_basic.py#L244"
     ],
     "test_protect_code_identifiers_mixed_case": [
-      "tests/test_basic.py#L246"
+      "tests/test_basic.py#L254"
     ],
     "test_protect_code_identifiers_no_matches": [
-      "tests/test_basic.py#L255"
-    ],
-    "test_target_language_support": [
       "tests/test_basic.py#L263"
     ],
+    "test_target_language_support": [
+      "tests/test_basic.py#L271"
+    ],
     "test_normalize_text": [
-      "tests/test_basic.py#L281"
+      "tests/test_basic.py#L294"
     ],
     "test_fuzzy_match_symbol": [
-      "tests/test_basic.py#L291"
+      "tests/test_basic.py#L304"
     ],
     "test_reconcile_text_basic": [
-      "tests/test_basic.py#L313"
+      "tests/test_basic.py#L326"
     ],
     "test_reconcile_text_context_rules": [
-      "tests/test_basic.py#L350"
+      "tests/test_basic.py#L363"
     ],
     "test_cache_structure": [
-      "tests/test_basic.py#L382"
+      "tests/test_basic.py#L395"
     ],
     "test_project_root_cache_path": [
-      "tests/test_basic.py#L426"
+      "tests/test_basic.py#L439"
     ],
     "test_safe_reconciliation_with_cache": [
-      "tests/test_basic.py#L455"
+      "tests/test_basic.py#L468"
     ],
     "test_safe_reconciliation_without_cache": [
-      "tests/test_basic.py#L495"
+      "tests/test_basic.py#L508"
     ],
     "test_related_section_no_placeholders": [
-      "tests/test_basic.py#L511"
+      "tests/test_basic.py#L524"
     ],
     "test_project_root_parameter_passing": [
-      "tests/test_basic.py#L534"
+      "tests/test_basic.py#L547"
     ],
     "test_reconcile_text_default_hybrid": [
-      "tests/test_basic.py#L553"
+      "tests/test_basic.py#L566"
     ],
     "test_lex_mode_hybrid": [
-      "tests/test_basic.py#L584"
+      "tests/test_basic.py#L597"
     ],
     "test_global_reporter_instance": [
-      "tests/test_basic.py#L624"
+      "tests/test_basic.py#L637"
     ],
     "test_detailed_reconciliation_progress": [
-      "tests/test_basic.py#L636"
+      "tests/test_basic.py#L649"
     ],
     "test_hybrid_mode_reconciliation_progress": [
-      "tests/test_basic.py#L676"
+      "tests/test_basic.py#L689"
     ],
     "test_hybrid_mode_processing": [
-      "tests/test_basic.py#L726"
+      "tests/test_basic.py#L739"
     ],
     "test_hybrid_mode_processing_logic": [
-      "tests/test_basic.py#L772"
+      "tests/test_basic.py#L785"
     ],
     "test_marked_text_processing_with_rules": [
-      "tests/test_basic.py#L811"
+      "tests/test_basic.py#L824"
     ],
     "test_optimized_hybrid_vs_traditional_hybrid": [
-      "tests/test_basic.py#L849"
+      "tests/test_basic.py#L862"
     ],
     "test_ngram_search_after_llm_processing": [
-      "tests/test_basic.py#L902"
+      "tests/test_basic.py#L915"
     ],
     "test_ngrams_only_from_llm_keywords": [
-      "tests/test_basic.py#L952"
+      "tests/test_basic.py#L965"
     ],
     "test_clipboard_copying_with_mock": [
-      "tests/test_basic.py#L1001"
+      "tests/test_basic.py#L1014"
     ],
     "test_clipboard_error_handling": [
-      "tests/test_basic.py#L1040"
+      "tests/test_basic.py#L1053"
+    ],
+    "test_llm_handler_initialization": [
+      "tests/test_basic.py#L1080"
+    ],
+    "test_global_llm_handler_instance": [
+      "tests/test_basic.py#L1092"
+    ],
+    "test_reconciliation_request_with_symbols": [
+      "tests/test_basic.py#L1103"
+    ],
+    "test_reconciliation_request_empty_input": [
+      "tests/test_basic.py#L1139"
+    ],
+    "test_distillation_request_success": [
+      "tests/test_basic.py#L1153"
+    ],
+    "test_distillation_request_invalid_json": [
+      "tests/test_basic.py#L1174"
+    ],
+    "test_reasoning_model_error_detection": [
+      "tests/test_basic.py#L1200"
+    ],
+    "test_reasoning_model_parameters": [
+      "tests/test_basic.py#L1232"
+    ],
+    "test_environment_variable_functions": [
+      "tests/test_basic.py#L1257"
+    ],
+    "test_parameter_adjustment": [
+      "tests/test_basic.py#L1282"
+    ],
+    "test_llm_request_with_fallback_success": [
+      "tests/test_basic.py#L1302"
+    ],
+    "test_llm_request_with_fallback_retry": [
+      "tests/test_basic.py#L1319"
+    ],
+    "test_irlite_validation_error_logging": [
+      "tests/test_basic.py#L1355"
+    ],
+    "test_irlite_validation_with_valid_data": [
+      "tests/test_basic.py#L1405"
+    ],
+    "test_reasoning_model_config_properties": [
+      "tests/test_basic.py#L1449"
+    ],
+    "test_llm_model_backward_compatibility": [
+      "tests/test_basic.py#L1480"
+    ],
+    "test_reasoning_model_parameter_selection": [
+      "tests/test_basic.py#L1499"
     ],
     "test_debug_logger_initialization": [
-      "tests/test_basic.py#L1067"
+      "tests/test_basic.py#L1552"
     ],
     "test_debug_logging_with_environment_variable": [
-      "tests/test_basic.py#L1086"
+      "tests/test_basic.py#L1571"
     ],
     "test_debug_logging_disabled_by_default": [
-      "tests/test_basic.py#L1100"
+      "tests/test_basic.py#L1585"
+    ],
+    "MockTemperatureError": [
+      "tests/test_basic.py#L1205"
+    ],
+    "MockMaxTokensError": [
+      "tests/test_basic.py#L1215"
+    ],
+    "RegularError": [
+      "tests/test_basic.py#L1225"
+    ],
+    "MockReasoningError": [
+      "tests/test_basic.py#L1326"
     ]
   }
 }

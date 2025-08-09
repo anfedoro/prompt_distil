@@ -82,9 +82,13 @@ def distill(
             # Validate configuration
             validate_config()
 
-            # Set debug environment variable if flag is enabled
+            # Set debug environment variable - CLI flag always overrides .env
             if debug:
-                os.environ["PD_DEBUG_RECONCILE"] = "1"
+                os.environ["PD_DEBUG"] = "1"
+            else:
+                # Ensure debug is off if flag is explicitly False (overrides .env)
+                if "PD_DEBUG" not in os.environ or os.environ.get("PD_DEBUG") == "0":
+                    os.environ["PD_DEBUG"] = "0"
 
             # Load or ensure cache for reconciliation
             reporter.step("Building/Using cache…")
@@ -133,9 +137,13 @@ def from_audio(
             # Validate configuration
             validate_config()
 
-            # Set debug environment variable if flag is enabled
+            # Set debug environment variable - CLI flag always overrides .env
             if debug:
-                os.environ["PD_DEBUG_RECONCILE"] = "1"
+                os.environ["PD_DEBUG"] = "1"
+            else:
+                # Ensure debug is off if flag is explicitly False (overrides .env)
+                if "PD_DEBUG" not in os.environ or os.environ.get("PD_DEBUG") == "0":
+                    os.environ["PD_DEBUG"] = "0"
 
             # Check audio file
             reporter.step("Checking audio file…")
@@ -344,33 +352,18 @@ def _display_distillation_result(result: dict, profile: str, output_format: str)
         unknown = ", ".join(passport["unknown_identifier_mentions"])
         passport_table.add_row("Unknown mentions", f"`{unknown}`")
 
-    # Show lexicon information
-    if passport.get("lexicon_lang"):
-        passport_table.add_row("Lexicon language", passport["lexicon_lang"])
-
-    if passport.get("lexicon_hits"):
-        lexicon_terms = ", ".join(passport["lexicon_hits"])
-        passport_table.add_row("Lexicon hits", f"`{lexicon_terms}`")
-
-    if passport.get("lex_mode"):
-        passport_table.add_row("Lexicon mode", passport["lex_mode"])
-
-    if passport.get("stemmer_lang"):
-        passport_table.add_row("Stemmer language", passport["stemmer_lang"])
-
-    if passport.get("unresolved_terms"):
-        unresolved = ", ".join(passport["unresolved_terms"])
-        passport_table.add_row("Unresolved terms", f"`{unresolved}`")
+    # Show unknown mentions if any
+    if passport.get("unknown_identifier_mentions"):
+        unknown = ", ".join(passport["unknown_identifier_mentions"])
+        passport_table.add_row("Unknown mentions", f"`{unknown}`")
 
     # Show project information
     if passport.get("project_root"):
         passport_table.add_row("Project root", passport["project_root"])
 
-    # Show language information
-    if passport.get("asr_language"):
+    # Show ASR language if relevant
+    if passport.get("asr_language") and passport["asr_language"] != "auto":
         passport_table.add_row("ASR language", passport["asr_language"])
-    if passport.get("target_language"):
-        passport_table.add_row("Target language", passport["target_language"])
 
     console.print(passport_table)
 

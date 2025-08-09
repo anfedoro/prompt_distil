@@ -150,12 +150,20 @@ class TestConfig:
 
     def test_default_models(self):
         """Test default model configurations."""
-        config = Config()
-        # These should return defaults even without environment variables
-        assert config.distil_model == "gpt-4.1-mini"
-        assert config.asr_model == "whisper-1"
-        assert config.openai_timeout == 60
-        assert config.max_retries == 3
+        import os
+        from unittest.mock import patch
+
+        # Preserve OPENAI_API_KEY but clear model-specific environment variables
+        openai_key = os.environ.get("OPENAI_API_KEY", "test-key")
+        clean_env = {"OPENAI_API_KEY": openai_key}
+
+        with patch.dict(os.environ, clean_env, clear=True):
+            config = Config()
+            # These should return defaults without model environment variables
+            assert config.distil_model == "gpt-4o-mini"
+            assert config.asr_model == "whisper-1"
+            assert config.openai_timeout == 60
+            assert config.max_retries == 3
 
 
 class TestProjectSurface:
@@ -268,10 +276,15 @@ class TestCodeIdentifierProtection:
         distiller = TranscriptDistiller.__new__(TranscriptDistiller)
 
         # Test system prompt generation with different target languages
-        system_prompt_en = distiller._create_system_prompt({}, target_language="en")
-        system_prompt_auto = distiller._create_system_prompt({}, target_language="auto")
+        # Test system prompt generation via LLM Handler
+        from prompt_distil.core.llm_handler import LLMHandler
+
+        handler = LLMHandler(".")
+        system_prompt_en = handler._create_distillation_system_prompt({}, target_language="en")
+        system_prompt_auto = handler._create_distillation_system_prompt({}, target_language="auto")
 
         assert "Produce final prompts in English" in system_prompt_en
+        assert "the source language" in system_prompt_auto
         assert "Produce final prompts in the source language" in system_prompt_auto
 
 
@@ -1061,6 +1074,478 @@ class TestClipboardFunctionality:
             _display_distillation_result(result, "standard", "markdown")
 
 
+class TestLLMHandler:
+    """Test centralized LLM Handler functionality."""
+
+    def test_llm_handler_initialization(self):
+        """Test that LLM handler initializes correctly."""
+        import tempfile
+
+        from prompt_distil.core.llm_handler import LLMHandler
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            handler = LLMHandler(temp_dir)
+            assert handler.project_root == temp_dir
+            assert handler.client is not None
+            assert handler.debug_logger is not None
+
+    def test_global_llm_handler_instance(self):
+        """Test that global LLM handler instance works correctly."""
+        from prompt_distil.core.llm_handler import get_llm_handler
+
+        handler1 = get_llm_handler(".")
+        handler2 = get_llm_handler(".")
+        assert handler1 is handler2  # Same instance for same project root
+
+        handler3 = get_llm_handler("/different/path")
+        assert handler3 is not handler1  # Different instance for different path
+
+    def test_reconciliation_request_with_symbols(self):
+        """Test reconciliation request with valid symbols."""
+        import tempfile
+        from unittest.mock import patch
+
+        from prompt_distil.core.llm_handler import LLMHandler
+        from prompt_distil.core.surface import save_cache
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create cache with test symbols
+            cache_data = {
+                "version": 1,
+                "generated_at": "2023-01-01T00:00:00",
+                "root": temp_dir,
+                "globs": ["**/*.py"],
+                "files": [],
+                "symbols": [
+                    {"name": "test_function", "kind": "function", "path": "test.py", "lineno": 1},
+                    {"name": "TestClass", "kind": "class", "path": "test.py", "lineno": 5},
+                ],
+                "inverted_index": {"test_function": ["test.py#L1"], "TestClass": ["test.py#L5"]},
+            }
+            save_cache(temp_dir, cache_data)
+
+            handler = LLMHandler(temp_dir)
+
+            with patch("prompt_distil.core.llm_handler.make_llm_request_with_reasoning_fallback") as mock_request:
+                # Mock successful response
+                mock_response = type("MockResponse", (), {})()
+                mock_response.choices = [type("Choice", (), {"message": type("Message", (), {"content": "Fix the `test_function`"})()})]
+                mock_request.return_value = mock_response
+
+                result = handler.make_reconciliation_request("Fix the test function", ["test_function", "TestClass"])
+                assert result == "Fix the `test_function`"
+                mock_request.assert_called_once()
+
+    def test_reconciliation_request_empty_input(self):
+        """Test reconciliation request with empty input."""
+        from prompt_distil.core.llm_handler import LLMHandler
+
+        handler = LLMHandler(".")
+
+        # Empty transcript should return as-is
+        result = handler.make_reconciliation_request("", ["symbol1"])
+        assert result == ""
+
+        # Empty symbols should return original transcript
+        result = handler.make_reconciliation_request("test text", [])
+        assert result == "test text"
+
+    def test_distillation_request_success(self):
+        """Test successful distillation request."""
+        import tempfile
+        from unittest.mock import patch
+
+        from prompt_distil.core.llm_handler import LLMHandler
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            handler = LLMHandler(temp_dir)
+
+            with patch("prompt_distil.core.llm_handler.make_llm_request_with_reasoning_fallback") as mock_request:
+                # Mock successful JSON response
+                mock_response = type("MockResponse", (), {})()
+                json_content = '{"goals": ["test goal"], "context": "test context", "requirements": []}'
+                mock_response.choices = [type("Choice", (), {"message": type("Message", (), {"content": json_content})()})]
+                mock_request.return_value = mock_response
+
+                result = handler.make_distillation_request("test transcript")
+                assert result == {"goals": ["test goal"], "context": "test context", "requirements": []}
+                mock_request.assert_called_once()
+
+    def test_distillation_request_invalid_json(self):
+        """Test distillation request with invalid JSON response."""
+        import tempfile
+        from unittest.mock import patch
+
+        from prompt_distil.core.llm_handler import LLMHandler, LLMHandlerError
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            handler = LLMHandler(temp_dir)
+
+            with patch("prompt_distil.core.llm_handler.make_llm_request_with_reasoning_fallback") as mock_request:
+                # Mock invalid JSON response
+                mock_response = type("MockResponse", (), {})()
+                mock_response.choices = [type("Choice", (), {"message": type("Message", (), {"content": "invalid json"})()})]
+                mock_request.return_value = mock_response
+
+                try:
+                    handler.make_distillation_request("test transcript")
+                    assert False, "Should have raised LLMHandlerError"
+                except LLMHandlerError as e:
+                    assert "Invalid JSON response" in str(e)
+
+
+class TestReasoningModelHandler:
+    """Test reasoning model error detection and parameter adjustment."""
+
+    def test_reasoning_model_error_detection(self):
+        """Test detection of reasoning model errors."""
+        from prompt_distil.core.llm_handler import is_reasoning_model_error
+
+        # Mock OpenAI API error with reasoning model pattern (temperature)
+        class MockTemperatureError(Exception):
+            def __init__(self):
+                self.status_code = 400
+                self.response = type("Response", (), {})()
+                self.response.json = lambda: {"error": {"type": "invalid_request_error", "code": "unsupported_value", "param": "temperature"}}
+
+        temp_error = MockTemperatureError()
+        assert is_reasoning_model_error(temp_error) == True
+
+        # Mock OpenAI API error with reasoning model pattern (max_tokens)
+        class MockMaxTokensError(Exception):
+            def __init__(self):
+                self.status_code = 400
+                self.response = type("Response", (), {})()
+                self.response.json = lambda: {"error": {"type": "invalid_request_error", "code": "unsupported_parameter", "param": "max_tokens"}}
+
+        tokens_error = MockMaxTokensError()
+        assert is_reasoning_model_error(tokens_error) == True
+
+        # Test non-reasoning model error
+        class RegularError(Exception):
+            def __init__(self):
+                self.status_code = 500
+
+        regular_error = RegularError()
+        assert is_reasoning_model_error(regular_error) == False
+
+    def test_reasoning_model_parameters(self):
+        """Test parameter adjustment for reasoning models with environment variables."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.llm_handler import get_reasoning_model_parameters
+
+        # Test with default environment values
+        with patch.dict(os.environ, {}, clear=False):
+            # Test reconciliation parameters (should return empty dict for now)
+            reconciliation_params = get_reasoning_model_parameters("reconciliation")
+            assert reconciliation_params == {}  # Currently empty as OpenAI doesn't support these params
+
+            # Test distillation parameters (should return empty dict for now)
+            distillation_params = get_reasoning_model_parameters("distillation")
+            assert distillation_params == {}  # Currently empty as OpenAI doesn't support these params
+
+        # Test with custom environment values (should still return empty)
+        with patch.dict(os.environ, {"REASONING_EFFORT": "high", "VERBOSITY": "high"}, clear=False):
+            reconciliation_params = get_reasoning_model_parameters("reconciliation")
+            assert reconciliation_params == {}  # Still empty
+
+            distillation_params = get_reasoning_model_parameters("distillation")
+            assert distillation_params == {}  # Still empty
+
+    def test_environment_variable_functions(self):
+        """Test environment variable getter functions."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.llm_handler import get_env_model_temperature, get_env_reasoning_effort, get_env_verbosity
+
+        # Test defaults
+        with patch.dict(os.environ, {}, clear=False):
+            assert get_env_reasoning_effort() == "low"
+            assert get_env_verbosity() == "medium"
+            assert get_env_model_temperature() == 0.2
+
+        # Test custom values
+        with patch.dict(os.environ, {"REASONING_EFFORT": "high", "VERBOSITY": "low", "MODEL_TEMPERATURE": "0.5"}, clear=False):
+            assert get_env_reasoning_effort() == "high"
+            assert get_env_verbosity() == "low"
+            assert get_env_model_temperature() == 0.5
+
+        # Test invalid values fall back to defaults
+        with patch.dict(os.environ, {"REASONING_EFFORT": "invalid", "VERBOSITY": "invalid", "MODEL_TEMPERATURE": "invalid"}, clear=False):
+            assert get_env_reasoning_effort() == "low"
+            assert get_env_verbosity() == "medium"
+            assert get_env_model_temperature() == 0.2
+
+    def test_parameter_adjustment(self):
+        """Test adjustment of LLM parameters for reasoning model."""
+        from prompt_distil.core.llm_handler import adjust_llm_params_for_reasoning_model
+
+        original_params = {"model": "gpt-4", "messages": [{"role": "user", "content": "test"}], "temperature": 0.1, "max_tokens": 1000}
+
+        # Test reconciliation adjustment
+        adjusted = adjust_llm_params_for_reasoning_model(original_params, "reconciliation")
+
+        # Temperature and max_tokens should be removed
+        assert "temperature" not in adjusted
+        assert "max_tokens" not in adjusted
+
+        # max_completion_tokens should be added instead of max_tokens
+        assert adjusted["max_completion_tokens"] == 1000
+
+        # Other parameters should remain
+        assert adjusted["model"] == "gpt-4"
+        assert adjusted["messages"] == [{"role": "user", "content": "test"}]
+
+    def test_llm_request_with_fallback_success(self):
+        """Test LLM request that succeeds on first try."""
+        from unittest.mock import Mock
+
+        from prompt_distil.core.llm_handler import make_llm_request_with_reasoning_fallback
+
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_client.chat.completions.create.return_value = mock_response
+
+        params = {"model": "gpt-4", "messages": [], "temperature": 0.1}
+
+        result = make_llm_request_with_reasoning_fallback(mock_client, params, "reconciliation")
+
+        assert result == mock_response
+        mock_client.chat.completions.create.assert_called_once_with(**params)
+
+    def test_llm_request_with_fallback_retry(self):
+        """Test LLM request that fails first then succeeds with reasoning model params."""
+        from unittest.mock import Mock
+
+        from prompt_distil.core.llm_handler import make_llm_request_with_reasoning_fallback
+
+        # Mock reasoning model error
+        class MockReasoningError(Exception):
+            def __init__(self):
+                self.status_code = 400
+                self.response = Mock()
+                self.response.json.return_value = {"error": {"type": "invalid_request_error", "code": "unsupported_value", "param": "temperature"}}
+
+        mock_client = Mock()
+        mock_response = Mock()
+
+        # First call fails, second succeeds
+        mock_client.chat.completions.create.side_effect = [MockReasoningError(), mock_response]
+
+        params = {"model": "gpt-4", "messages": [], "temperature": 0.1}
+
+        result = make_llm_request_with_reasoning_fallback(mock_client, params, "reconciliation")
+
+        assert result == mock_response
+        assert mock_client.chat.completions.create.call_count == 2
+
+        # Second call should have adjusted parameters (no temperature)
+        second_call_params = mock_client.chat.completions.create.call_args_list[1][1]
+        assert "temperature" not in second_call_params
+        # Currently no additional parameters are added for reasoning models
+        assert second_call_params == {"messages": [], "model": "gpt-4"}
+
+
+class TestIRLiteValidation:
+    """Test IRLite validation error handling and logging."""
+
+    def test_irlite_validation_error_logging(self):
+        """Test that IRLite validation errors are properly logged."""
+        import tempfile
+        from unittest.mock import patch
+
+        from prompt_distil.core.debug_log import DebugLogger
+        from prompt_distil.core.distill import DistillationError, TranscriptDistiller
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Enable debug logging
+            debug_logger = DebugLogger(temp_dir, enabled=True)
+
+            distiller = TranscriptDistiller(temp_dir)
+
+            # Mock LLM response with invalid known_entities structure
+            invalid_response_data = {
+                "goal": "Test goal",
+                "scope_hints": [],
+                "must": [],
+                "must_not": [],
+                "known_entities": [
+                    {"path": None, "symbol": "test_func", "confidence": 0.8},  # path is None, should be string
+                    {"path": 123, "symbol": "another_func"},  # path is int, should be string
+                ],
+                "unknowns": [],
+                "acceptance": [],
+                "assumptions": [],
+            }
+
+            # Mock the LLM handler to return invalid data
+            with patch("prompt_distil.core.distill.get_llm_handler") as mock_get_handler:
+                mock_handler = mock_get_handler.return_value
+                mock_handler.make_distillation_request.return_value = invalid_response_data
+
+                # This should trigger validation error logging
+                error_caught = None
+                try:
+                    distiller.build_ir_lite("test transcript", {})
+                    assert False, "Expected DistillationError"
+                except DistillationError as e:
+                    error_caught = e
+                    assert "Failed to create IRLite from response" in str(e)
+
+                # Check that validation error was logged (we can't easily check file logging in tests,
+                # but we can verify the exception contains the expected validation details)
+                assert error_caught is not None
+                assert "2 validation errors for IRLite" in str(error_caught)
+                assert "known_entities" in str(error_caught)
+                assert "path" in str(error_caught)
+
+    def test_irlite_validation_with_valid_data(self):
+        """Test that valid IRLite data does not trigger error logging."""
+        import tempfile
+        from unittest.mock import patch
+
+        from prompt_distil.core.distill import TranscriptDistiller
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            distiller = TranscriptDistiller(temp_dir)
+
+            # Mock LLM response with valid known_entities structure
+            valid_response_data = {
+                "goal": "Test goal",
+                "scope_hints": [],
+                "must": [],
+                "must_not": [],
+                "known_entities": [
+                    {"path": "test.py", "symbol": "test_func", "confidence": 0.8},
+                    {"path": "module/file.py", "symbol": "another_func", "confidence": 0.9},
+                ],
+                "unknowns": [],
+                "acceptance": [],
+                "assumptions": [],
+            }
+
+            # Mock the LLM handler to return valid data
+            with patch("prompt_distil.core.distill.get_llm_handler") as mock_get_handler:
+                mock_handler = mock_get_handler.return_value
+                mock_handler.make_distillation_request.return_value = valid_response_data
+
+                # This should work without errors
+                try:
+                    ir = distiller.build_ir_lite("test transcript", {})
+                    assert ir.goal == "Test goal"
+                    assert len(ir.known_entities) == 2
+                    assert ir.known_entities[0].path == "test.py"
+                    assert ir.known_entities[1].path == "module/file.py"
+                except Exception as e:
+                    assert False, f"Unexpected error with valid data: {e}"
+
+
+class TestReasoningModelConfiguration:
+    """Test reasoning model configuration and parameter handling."""
+
+    def test_reasoning_model_config_properties(self):
+        """Test reasoning model configuration properties."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.config import Config
+
+        # Test with default values (not reasoning model)
+        with patch.dict(os.environ, {}, clear=True):
+            config = Config()
+            assert config.is_reasoning_model == False
+            assert config.llm_model == "gpt-4o-mini"
+
+        # Test with IS_REASONING_MODEL=true
+        with patch.dict(os.environ, {"IS_REASONING_MODEL": "true", "LLM_MODEL": "o1-preview"}, clear=True):
+            config = Config()
+            assert config.is_reasoning_model == True
+            assert config.llm_model == "o1-preview"
+
+        # Test various true values
+        for true_value in ["true", "1", "yes", "on", "TRUE", "Yes", "ON"]:
+            with patch.dict(os.environ, {"IS_REASONING_MODEL": true_value}, clear=True):
+                config = Config()
+                assert config.is_reasoning_model == True
+
+        # Test various false values
+        for false_value in ["false", "0", "no", "off", "FALSE", "No", "OFF", ""]:
+            with patch.dict(os.environ, {"IS_REASONING_MODEL": false_value}, clear=True):
+                config = Config()
+                assert config.is_reasoning_model == False
+
+    def test_llm_model_backward_compatibility(self):
+        """Test LLM_MODEL with DISTIL_MODEL backward compatibility."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.config import Config
+
+        # Test LLM_MODEL takes precedence
+        with patch.dict(os.environ, {"LLM_MODEL": "gpt-4o", "DISTIL_MODEL": "gpt-3.5-turbo"}, clear=True):
+            config = Config()
+            assert config.llm_model == "gpt-4o"
+            assert config.distil_model == "gpt-4o"  # distil_model should return llm_model
+
+        # Test fallback to DISTIL_MODEL when LLM_MODEL is not set
+        with patch.dict(os.environ, {"DISTIL_MODEL": "gpt-4o-mini"}, clear=True):
+            config = Config()
+            assert config.llm_model == "gpt-4o-mini"
+            assert config.distil_model == "gpt-4o-mini"
+
+    def test_reasoning_model_parameter_selection(self):
+        """Test that reasoning model flag affects parameter selection."""
+        import tempfile
+        from unittest.mock import Mock, patch
+
+        from prompt_distil.core.llm_handler import LLMHandler
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Test standard model parameters
+            with patch("prompt_distil.core.llm_handler.config") as mock_config:
+                mock_config.is_reasoning_model = False
+                mock_config.llm_model = "gpt-4o"
+
+                handler = LLMHandler(temp_dir)
+
+                with patch("prompt_distil.core.llm_handler.make_llm_request_with_reasoning_fallback") as mock_request:
+                    mock_response = Mock()
+                    mock_response.choices = [Mock(message=Mock(content="test response"))]
+                    mock_request.return_value = mock_response
+
+                    # This should include temperature for standard models
+                    result = handler.make_reconciliation_request("test text", ["symbol1"])
+
+                    # Check that temperature was included in the request
+                    call_args = mock_request.call_args[1]["original_params"]
+                    assert "temperature" in call_args
+                    assert call_args["model"] == "gpt-4o"
+
+            # Test reasoning model parameters
+            with patch("prompt_distil.core.llm_handler.config") as mock_config:
+                mock_config.is_reasoning_model = True
+                mock_config.llm_model = "o1-preview"
+
+                handler = LLMHandler(temp_dir)
+
+                with patch("prompt_distil.core.llm_handler.make_llm_request_with_reasoning_fallback") as mock_request:
+                    mock_response = Mock()
+                    mock_response.choices = [Mock(message=Mock(content="test response"))]
+                    mock_request.return_value = mock_response
+
+                    # This should NOT include temperature for reasoning models
+                    result = handler.make_reconciliation_request("test text", ["symbol1"])
+
+                    # Check that temperature was NOT included in the request
+                    call_args = mock_request.call_args[1]["original_params"]
+                    assert "temperature" not in call_args
+                    assert "max_completion_tokens" in call_args  # Should use max_completion_tokens
+                    assert call_args["model"] == "o1-preview"
+
+
 class TestDebugLogging:
     """Test debug logging functionality for reconcile_text hybrid mode."""
 
@@ -1094,7 +1579,25 @@ class TestDebugLogging:
         assert not is_debug_enabled()
 
         # Test with debug enabled via environment
-        with patch.dict(os.environ, {"PD_DEBUG_RECONCILE": "1"}):
+        with patch.dict(os.environ, {"PD_DEBUG": "1"}):
+            assert is_debug_enabled()
+
+    def test_debug_backward_compatibility(self):
+        """Test backward compatibility with PD_DEBUG_RECONCILE."""
+        import os
+        from unittest.mock import patch
+
+        from prompt_distil.core.debug_log import is_debug_enabled
+
+        # Test that old PD_DEBUG_RECONCILE still works
+        with patch.dict(os.environ, {"PD_DEBUG_RECONCILE": "1"}, clear=True):
+            assert is_debug_enabled()
+
+        # Test that PD_DEBUG takes precedence over PD_DEBUG_RECONCILE
+        with patch.dict(os.environ, {"PD_DEBUG": "0", "PD_DEBUG_RECONCILE": "1"}, clear=True):
+            assert not is_debug_enabled()
+
+        with patch.dict(os.environ, {"PD_DEBUG": "1", "PD_DEBUG_RECONCILE": "0"}, clear=True):
             assert is_debug_enabled()
 
     def test_debug_logging_disabled_by_default(self):

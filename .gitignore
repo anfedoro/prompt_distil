@@ -32,6 +32,7 @@ coverage.xml
 venv/
 .env
 .env.*
+!.env.example
 .envrc
 
 # --- uv ---
@@ -42,9 +43,6 @@ venv/
 # The project's cache is stored in .prompt_distil — ignore everything,
 # but allow committing user lexicons (if any exist).
 .prompt_distil/*
-!.prompt_distil/lexicon/
-!.prompt_distil/lexicon/*.json
-!.prompt_distil/.gitkeep
 
 # --- Acceptance / runner artifacts ---
 acceptance_artifacts/

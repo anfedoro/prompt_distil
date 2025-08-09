@@ -6,10 +6,10 @@ into structured intermediate representation (IR-lite) and then rendering prompts
 Uses OpenAI API for intelligent parsing and structuring of transcript content.
 """
 
-import json
-from typing import Dict, Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 from .config import config, get_client
+from .llm_handler import LLMHandlerError, get_llm_handler
 from .progress import reporter
 from .prompt import PromptRenderer
 from .reconcile import reconcile_text
@@ -85,47 +85,67 @@ class TranscriptDistiller:
         cache = load_cache(self.project_root) or ensure_cache(self.project_root, save=False)
 
         # Step 4: Prepare system and user prompts for distillation
+        # Step 4: Prepare project context hints for LLM handler
         reporter.step("Preparing distillation prompts…")
         compact_hints = self._prepare_compact_hints(cache, surface_hints)
-        system_prompt = self._create_system_prompt(compact_hints, target_language)
 
         # Step 5: Clean reconciled transcript before sending to distillation model
         reporter.step("Cleaning backtick symbols for distillation model…")
         cleaned_transcript = self._clean_backticks_for_distillation(reconciled_transcript)
-        user_prompt = self._create_user_prompt(cleaned_transcript)
         reporter.complete_sub_step("Cleaned backtick-enclosed words from prompt text")
 
         try:
-            reporter.step_with_context("Calling the distillation model", "for final prompt generation")
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-                response_format={"type": "json_object"},
-                temperature=0.1,  # Low temperature for consistent parsing
-            )
-            reporter.complete_sub_step("Received response from distillation model")
+            # Use centralized LLM handler for distillation request
+            llm_handler = get_llm_handler(self.project_root)
+            data = llm_handler.make_distillation_request(cleaned_transcript, compact_hints, target_language)
 
-            # Parse response
-            content = response.choices[0].message.content
-            if not content:
-                raise DistillationError("Empty response from model")
+            # Add reconciled identifiers and unknown mentions to the data before creating IRLite
+            data["reconciled_identifiers"] = reconciled_identifiers
+            data["unknown_identifier_mentions"] = unknown_mentions
+            data["lexicon_hits"] = []
+            data["unresolved_terms"] = unresolved_terms
 
-            # Parse JSON and validate with Pydantic
+            # Create IRLite from response data
             try:
-                data = json.loads(content)
-                # Add reconciled identifiers and unknown mentions to the data before creating IRLite
-                data["reconciled_identifiers"] = reconciled_identifiers
-                data["unknown_identifier_mentions"] = unknown_mentions
-                data["lexicon_hits"] = []
-                data["unresolved_terms"] = unresolved_terms
                 ir = IRLite(**data)
                 reporter.complete_sub_step("Parsed distillation model response into structured format")
                 return ir
-            except json.JSONDecodeError as e:
-                raise DistillationError(f"Invalid JSON response: {e}")
             except Exception as e:
+                # Log detailed information about the validation failure
+                import logging
+
+                from .debug_log import get_debug_logger
+
+                logger = logging.getLogger(__name__)
+                logger.error("=" * 60)
+                logger.error("IRLite VALIDATION FAILURE")
+                logger.error("=" * 60)
+                logger.error(f"Exception: {e}")
+                logger.error(f"Exception type: {type(e).__name__}")
+
+                # Log specific problematic fields if it's a Pydantic validation error
+                if hasattr(e, "errors"):
+                    logger.error("Pydantic validation errors:")
+                    for error in e.errors():
+                        field_path = " -> ".join(str(loc) for loc in error.get("loc", []))
+                        error_type = error.get("type", "unknown")
+                        error_msg = error.get("msg", "no message")
+                        input_value = error.get("input", "not provided")
+                        logger.error(f"  Field: {field_path}")
+                        logger.error(f"  Error: {error_type} - {error_msg}")
+                        logger.error(f"  Input value: {input_value} (type: {type(input_value).__name__})")
+                        logger.error("  ---")
+
+                logger.error("=" * 60)
+
+                # Use debug logger for detailed file logging
+                debug_logger = get_debug_logger(self.project_root)
+                debug_logger.log_validation_error(e, data, "irlite")
+
                 raise DistillationError(f"Failed to create IRLite from response: {e}")
 
+        except LLMHandlerError as e:
+            raise DistillationError(f"LLM Handler failed: {e}")
         except Exception as e:
             if isinstance(e, DistillationError):
                 raise
@@ -177,7 +197,7 @@ class TranscriptDistiller:
 
         # Create session passport
         reporter.step("Creating session summary…")
-        passport = self._create_session_passport(transcript, ir, surface_hints, target_language, asr_language)
+        passport = self._create_session_passport(transcript, ir, surface_hints, asr_language)
 
         return {"ir": ir, "prompts": prompts, "selected_prompt": prompts.get(profile, prompts["standard"]), "session_passport": passport}
 
@@ -209,94 +229,6 @@ class TranscriptDistiller:
             hints.update(surface_hints)
 
         return hints
-
-    def _create_system_prompt(self, compact_hints: Optional[Dict] = None, target_language: Literal["en", "auto"] = "en") -> str:
-        """Create system prompt for transcript distillation."""
-        base_prompt = """You are an expert at distilling noisy transcripts into structured intent representations for coding agents.
-
-Your task is to analyze a transcript and extract structured information in JSON format that follows this schema:
-
-{
-  "goal": "Primary objective or goal (required)",
-  "scope_hints": ["Context and scope information"],
-  "must": ["Required constraints and behaviors"],
-  "must_not": ["Prohibited actions or changes"],
-  "known_entities": [
-    {
-      "path": "file/path/or/module",
-      "symbol": "function_or_class_name",
-      "confidence": 0.8
-    }
-  ],
-  "unknowns": ["Unclear or ambiguous requirements"],
-  "acceptance": ["Acceptance criteria"],
-  "assumptions": ["Assumptions made during analysis"]
-}
-
-Guidelines:
-1. Extract the main goal clearly and concisely
-2. Identify specific files, functions, classes mentioned (known_entities)
-3. Separate clear requirements (must) from prohibitions (must_not)
-4. Flag unclear items as unknowns rather than guessing
-5. Convert uncertain facts into explicit assumptions
-6. Preserve earlier goals unless explicitly overridden
-7. Don't include implementation advice - focus on WHAT, not HOW
-8. Use confidence scores (0.0-1.0) for known_entities based on clarity
-
-CRITICAL: Code Identifier Preservation
-- Preserve backticked identifiers verbatim; do not translate, rewrite, or pluralize them
-- Treat them as code entities (functions/classes/files)
-- If transcript contains code-like tokens with underscores, keep them as-is
-- Code identifiers like `delete_task`, `login_handler` must remain exactly as written
-
-
-LANGUAGE REQUIREMENTS:
-- Produce final prompts in """
-
-        base_prompt += "English (default)" if target_language == "en" else "the source language"
-        base_prompt += """
-- If source is not English and target is English, translate narrative text only, and preserve backticked identifiers verbatim
-- Never translate code identifiers, file paths, or technical symbols
-
-"""
-
-        if compact_hints:
-            hint_text = self._format_compact_hints(compact_hints)
-            base_prompt += f"\nProject Context:\n{hint_text}\n"
-
-        base_prompt += "\nRespond only with valid JSON matching the schema above."
-
-        return base_prompt
-
-    def _create_user_prompt(self, transcript: str) -> str:
-        """Create user prompt containing the transcript to analyze."""
-        return f"""Analyze this transcript and extract structured intent information:
-
-TRANSCRIPT:
-{transcript}
-
-Extract the information into the JSON schema format as instructed."""
-
-    def _format_compact_hints(self, hints: Dict) -> str:
-        """Format compact hints for inclusion in system prompt."""
-        lines = []
-
-        if hints.get("top_dirs"):
-            lines.append("Top-level directories:")
-            for directory in hints["top_dirs"][:5]:  # Top 5
-                lines.append(f"  - {directory}")
-
-        if hints.get("sample_files"):
-            lines.append("Sample files:")
-            for file_path in hints["sample_files"][:10]:  # Top 10
-                lines.append(f"  - {file_path}")
-
-        if hints.get("known_symbols"):
-            lines.append("Known symbols:")
-            symbol_list = ", ".join(hints["known_symbols"][:20])  # Top 20
-            lines.append(f"  {symbol_list}")
-
-        return "\n".join(lines)
 
     def _gather_surface_hints(self) -> Dict:
         """Gather surface-level project information for context."""
@@ -348,10 +280,9 @@ Extract the information into the JSON schema format as instructed."""
         self,
         transcript: str,
         ir: IRLite,
-        surface_hints: Optional[Dict] = None,
-        target_language: Literal["en", "auto"] = "en",
-        asr_language: str = "auto",
-    ) -> Dict:
+        surface_hints: Optional[Dict],
+        asr_language: str,
+    ) -> Dict[str, Any]:
         """
         Create a session passport summarizing processing decisions.
 
@@ -359,7 +290,6 @@ Extract the information into the JSON schema format as instructed."""
             transcript: Original transcript
             ir: Generated IR-lite
             surface_hints: Surface hints used
-            target_language: Target language for prompts
             asr_language: Detected or hinted language from ASR
 
         Returns:
@@ -401,10 +331,6 @@ Extract the information into the JSON schema format as instructed."""
         # Get additional data from IR
         unresolved_terms = ir.unresolved_terms
 
-        # Language detection simplified - no longer needed for reconciliation
-        lexicon_lang = asr_language if asr_language != "auto" else "en"
-        stemmer_lang = "none"  # Stemming no longer used
-
         return {
             "transcript_stats": transcript_stats,
             "processing_stats": processing_stats,
@@ -417,12 +343,6 @@ Extract the information into the JSON schema format as instructed."""
             "unknown_identifier_mentions": unknown_mentions,
             "project_root": str(self.project_root),
             "asr_language": asr_language,
-            "target_language": target_language,
-            "lexicon_lang": lexicon_lang,
-            "lexicon_hits": [],
-            "lex_mode": "hybrid",
-            "stemmer_lang": stemmer_lang,
-            "unresolved_terms": unresolved_terms,
         }
 
     def _extract_preserved_identifiers(self, transcript: str, ir: IRLite) -> list[str]:
