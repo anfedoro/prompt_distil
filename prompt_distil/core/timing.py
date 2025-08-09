@@ -8,15 +8,16 @@ of key functions when PD_DEBUG environment variable is set.
 import functools
 import os
 import time
-from typing import Callable, TypeVar
+from typing import Callable, ParamSpec, TypeVar
 
-F = TypeVar("F", bound=Callable)
+P = ParamSpec("P")
+R = TypeVar("R")
 
 # Check if debug mode is enabled
 DEBUG_ENABLED = os.getenv("PD_DEBUG") == "1"
 
 
-def timer(func: F) -> F:
+def timer(func: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator that measures and logs execution time when PD_DEBUG=1.
 
@@ -31,7 +32,7 @@ def timer(func: F) -> F:
         return func
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
         end_time = time.perf_counter()

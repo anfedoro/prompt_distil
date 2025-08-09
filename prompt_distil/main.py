@@ -19,7 +19,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
 
-from .core.config import ConfigError, validate_config
+from .core.config import ConfigError, ensure_project_env, load_project_env, validate_config
 from .core.distill import distill_transcript
 from .core.progress import reporter
 from .core.speech import SpeechError, SpeechProcessor
@@ -79,7 +79,8 @@ def distill(
             # Ensure text is not None at this point
             assert text is not None, "Text should not be None after validation"
 
-            # Validate configuration
+            # Load project-scoped environment, then validate configuration
+            _ = load_project_env(project_root)
             validate_config()
 
             # Set debug environment variable - CLI flag always overrides .env
@@ -134,7 +135,8 @@ def from_audio(
     try:
         # Initialize progress reporter
         with reporter.initialize(console, "Validating input…"):
-            # Validate configuration
+            # Load project-scoped environment, then validate configuration
+            _ = load_project_env(project_root)
             validate_config()
 
             # Set debug environment variable - CLI flag always overrides .env
@@ -254,6 +256,10 @@ def index(
             stats_table.add_row("Cache saved", "Yes" if save else "No")
 
             console.print(stats_table)
+
+            # Ensure project-scoped environment file exists and report its location
+            env_path = ensure_project_env(project_root)
+            console.print(f"[dim]Project .env stored at: {env_path}[/dim]")
 
             # Show sample symbols
             symbols = cache.get("symbols", [])

@@ -297,6 +297,10 @@ def _should_include_file(file_path: Path) -> bool:
         if part in exclude_dirs:
             return False
 
+    # Skip Python package initializers to avoid indexing package roots
+    if file_path.name == "__init__.py":
+        return False
+
     return True
 
 

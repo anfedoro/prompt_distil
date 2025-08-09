@@ -21,7 +21,7 @@ class DebugLogger:
     timestamps and session identifiers for easy tracking.
     """
 
-    def __init__(self, project_root: str = ".", enabled: bool = None):
+    def __init__(self, project_root: str = ".", enabled: Optional[bool] = None):
         """
         Initialize debug logger.
 

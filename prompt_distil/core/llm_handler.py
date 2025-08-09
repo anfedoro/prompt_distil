@@ -72,19 +72,28 @@ def is_reasoning_model_error(exception: Exception) -> bool:
     """
     try:
         # Check if it's an OpenAI API error with status code 400
-        if hasattr(exception, "status_code") and exception.status_code == 400:
+        status = getattr(exception, "status_code", None)
+        if isinstance(status, int) and status == 400:
             # Try to get error details from different possible attributes
             error_data = None
 
-            if hasattr(exception, "response") and hasattr(exception.response, "json"):
+            # Try to get error details from different possible attributes without assuming types
+            resp = getattr(exception, "response", None)
+            if resp is not None:
                 try:
-                    error_data = exception.response.json()
-                except:
+                    json_method = getattr(resp, "json", None)
+                    if callable(json_method):
+                        error_data = json_method()
+                except Exception:
                     pass
-            elif hasattr(exception, "body"):
-                error_data = exception.body
-            elif hasattr(exception, "error"):
-                error_data = exception.error
+            if error_data is None:
+                body = getattr(exception, "body", None)
+                if isinstance(body, dict):
+                    error_data = body
+            if error_data is None:
+                err_attr = getattr(exception, "error", None)
+                if isinstance(err_attr, dict):
+                    error_data = {"error": err_attr}
 
             if error_data and isinstance(error_data, dict):
                 error_info = error_data.get("error", {})

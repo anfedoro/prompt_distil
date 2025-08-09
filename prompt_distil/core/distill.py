@@ -124,17 +124,26 @@ class TranscriptDistiller:
                 logger.error(f"Exception type: {type(e).__name__}")
 
                 # Log specific problematic fields if it's a Pydantic validation error
-                if hasattr(e, "errors"):
+                try:
+                    from pydantic import ValidationError  # type: ignore
+                except Exception:
+                    ValidationError = tuple()  # type: ignore[assignment]
+                if isinstance(e, ValidationError):
                     logger.error("Pydantic validation errors:")
-                    for error in e.errors():
-                        field_path = " -> ".join(str(loc) for loc in error.get("loc", []))
-                        error_type = error.get("type", "unknown")
-                        error_msg = error.get("msg", "no message")
-                        input_value = error.get("input", "not provided")
-                        logger.error(f"  Field: {field_path}")
-                        logger.error(f"  Error: {error_type} - {error_msg}")
-                        logger.error(f"  Input value: {input_value} (type: {type(input_value).__name__})")
-                        logger.error("  ---")
+                    errors_method = getattr(e, "errors", None)
+                    if callable(errors_method):
+                        errors_list: list[Dict[str, Any]] = list(errors_method() or [])  # type: ignore[arg-type]
+                        for error in errors_list:
+                            field_path = " -> ".join(str(loc) for loc in error.get("loc", []))
+                            error_type = error.get("type", "unknown")
+                            error_msg = error.get("msg", "no message")
+                            input_value = error.get("input", "not provided")
+                            logger.error(f"  Field: {field_path}")
+                            logger.error(f"  Error: {error_type} - {error_msg}")
+                            logger.error(f"  Input value: {input_value} (type: {type(input_value).__name__})")
+                            logger.error("  ---")
+                    else:
+                        logger.error("  (no detailed validation errors available)")
 
                 logger.error("=" * 60)
 
