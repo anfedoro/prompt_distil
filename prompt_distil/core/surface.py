@@ -10,6 +10,7 @@ Includes symbol inventory caching for fast symbol lookup and reconciliation.
 
 import ast
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -197,7 +198,14 @@ class ProjectSurface:
 # Convenience functions for simple use cases
 
 
-def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, max_files: int = 1000, max_bytes: int = 200_000) -> Dict:
+def build_symbol_inventory(
+    root: str = ".",
+    globs: Optional[List[str]] = None,
+    max_files: int = 1000,
+    max_bytes: int = 200_000,
+    target_files: Optional[List[str]] = None,
+    store_content_hash: bool = False,
+) -> Dict:
     """
     Build a symbol inventory cache from project files using AST parsing.
 
@@ -206,6 +214,8 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
         globs: List of glob patterns to search (default: ["**/*.py"])
         max_files: Maximum number of files to process
         max_bytes: Maximum bytes per file to process
+        target_files: Optional list of specific files to process (for incremental updates)
+        store_content_hash: Store content hashes for better change detection
 
     Returns:
         Dictionary with cache structure containing symbols and metadata
@@ -230,12 +240,20 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
 
     files_processed = 0
 
-    # Collect files matching globs
+    # Collect files matching globs or use target files for incremental updates
     all_files = []
-    for glob_pattern in globs:
-        for file_path in root_path.glob(glob_pattern):
-            if file_path.is_file() and _should_include_file(file_path):
+    if target_files:
+        # Process only specific target files
+        for target_file in target_files:
+            file_path = root_path / target_file
+            if file_path.exists() and file_path.is_file() and _should_include_file(file_path):
                 all_files.append(file_path)
+    else:
+        # Process all files matching globs
+        for glob_pattern in globs:
+            for file_path in root_path.glob(glob_pattern):
+                if file_path.is_file() and _should_include_file(file_path):
+                    all_files.append(file_path)
 
     # Sort by size to process smaller files first
     all_files.sort(key=lambda f: f.stat().st_size)
@@ -256,6 +274,15 @@ def build_symbol_inventory(root: str = ".", globs: Optional[List[str]] = None, m
 
             # Add file metadata
             file_info = {"path": str(rel_path), "mtime": stat.st_mtime, "size": stat.st_size}
+
+            # Add content hash if requested
+            if store_content_hash:
+                try:
+                    file_info["content_hash"] = _calculate_file_hash(file_path)
+                except Exception:
+                    # If hashing fails, continue without hash
+                    pass
+
             cache["files"].append(file_info)
 
             # Extract symbols if it's a Python file
@@ -350,28 +377,252 @@ def load_cache(root: str) -> Optional[Dict]:
         return None
 
 
-def ensure_cache(root: str, globs: Optional[List[str]] = None, force: bool = False, save: bool = True) -> Dict:
+def detect_changed_files(root: str, cache: Dict, globs: Optional[List[str]] = None, use_content_hash: bool = False) -> List[str]:
+    """
+    Detect files that have changed since last indexing by comparing modification times.
+
+    Args:
+        root: Root directory for operations
+        cache: Existing cache with file metadata
+        globs: Glob patterns to check (default: ["**/*.py"])
+        use_content_hash: Use content hashing for more accurate change detection
+
+    Returns:
+        List of relative paths of files that need reindexing
+    """
+    if globs is None:
+        globs = ["**/*.py"]
+
+    root_path = Path(root).absolute()
+    changed_files = []
+
+    # Create a lookup of cached file info by path
+    cached_files = {file_info["path"]: file_info for file_info in cache.get("files", [])}
+
+    # Check all files matching globs
+    for glob_pattern in globs:
+        for file_path in root_path.glob(glob_pattern):
+            if file_path.is_file() and _should_include_file(file_path):
+                rel_path = str(file_path.relative_to(root_path))
+
+                try:
+                    current_mtime = file_path.stat().st_mtime
+                    cached_file_info = cached_files.get(rel_path)
+
+                    # Check if file is new
+                    if cached_file_info is None:
+                        changed_files.append(rel_path)
+                        continue
+
+                    # Use content hashing if requested and available
+                    if use_content_hash and "content_hash" in cached_file_info:
+                        try:
+                            current_hash = _calculate_file_hash(file_path)
+                            if current_hash != cached_file_info["content_hash"]:
+                                changed_files.append(rel_path)
+                        except Exception:
+                            # Fallback to mtime if hashing fails
+                            if current_mtime > cached_file_info["mtime"]:
+                                changed_files.append(rel_path)
+                    else:
+                        # Use mtime-based detection
+                        if current_mtime > cached_file_info["mtime"]:
+                            changed_files.append(rel_path)
+                except Exception:
+                    # If we can't check the file, consider it changed
+                    changed_files.append(rel_path)
+
+    return changed_files
+
+
+def update_cache_incrementally(root: str, cache: Dict, changed_files: List[str], max_bytes: int = 200_000, store_content_hash: bool = False) -> Dict:
+    """
+    Update cache by reindexing only changed files.
+
+    Args:
+        root: Root directory for operations
+        cache: Existing cache to update
+        changed_files: List of files that need reindexing
+        max_bytes: Maximum bytes per file to process
+        store_content_hash: Store content hashes in cache for better change detection
+
+    Returns:
+        Updated cache dictionary
+    """
+    if not changed_files:
+        return cache
+
+    root_path = Path(root).absolute()
+
+    reporter.step(f"Reindexing {len(changed_files)} changed files…")
+
+    # Remove old symbols and file info for changed files
+    cache["files"] = [f for f in cache.get("files", []) if f["path"] not in changed_files]
+    cache["symbols"] = [s for s in cache.get("symbols", []) if s["path"] not in changed_files]
+
+    # Process changed files
+    for file_path_str in changed_files:
+        try:
+            file_path = root_path / file_path_str
+            stat = file_path.stat()
+
+            # Skip files that are too large
+            if stat.st_size > max_bytes:
+                continue
+
+            # Add updated file metadata
+            file_info = {"path": file_path_str, "mtime": stat.st_mtime, "size": stat.st_size}
+
+            # Add content hash if requested
+            if store_content_hash:
+                try:
+                    file_info["content_hash"] = _calculate_file_hash(file_path)
+                except Exception:
+                    # If hashing fails, continue without hash
+                    pass
+
+            cache["files"].append(file_info)
+
+            # Extract symbols if it's a Python file
+            if file_path.suffix == ".py":
+                symbols = _extract_python_symbols(file_path, file_path_str)
+                cache["symbols"].extend(symbols)
+
+        except Exception:
+            # Skip files that can't be processed
+            continue
+
+    # Rebuild inverted index
+    reporter.step("Rebuilding symbol index…")
+    cache["inverted_index"] = {}
+    for symbol in cache["symbols"]:
+        name = symbol["name"]
+        location = f"{symbol['path']}#L{symbol['lineno']}"
+
+        if name not in cache["inverted_index"]:
+            cache["inverted_index"][name] = []
+        cache["inverted_index"][name].append(location)
+
+    # Update metadata
+    cache["generated_at"] = datetime.datetime.now().isoformat()
+
+    return cache
+
+
+def reindex_specific_files(root: str, files: List[str], save: bool = True, store_content_hash: bool = False) -> Dict:
+    """
+    Reindex specific files, updating the existing cache or creating a new one.
+
+    Args:
+        root: Root directory for operations
+        files: List of specific files to reindex
+        save: Whether to save the updated cache
+        store_content_hash: Store content hashes for better change detection
+
+    Returns:
+        Updated cache dictionary
+    """
+    # Load existing cache or create new one
+    cache = load_cache(root)
+    if cache is None:
+        # Create minimal cache structure
+        cache = {
+            "version": 1,
+            "generated_at": datetime.datetime.now().isoformat(),
+            "root": str(Path(root).absolute()),
+            "globs": ["**/*.py"],
+            "files": [],
+            "symbols": [],
+            "inverted_index": {},
+        }
+
+    # Update cache with specific files
+    cache = update_cache_incrementally(root, cache, files, store_content_hash=store_content_hash)
+
+    if save:
+        save_cache(root, cache)
+
+    return cache
+
+
+def _calculate_file_hash(file_path: Path, algorithm: str = "blake2b") -> str:
+    """
+    Calculate hash of file content for change detection.
+
+    Args:
+        file_path: Path to the file to hash
+        algorithm: Hash algorithm to use ('blake2b', 'sha256', 'md5')
+
+    Returns:
+        Hexadecimal hash string
+    """
+    if algorithm == "blake2b":
+        hasher = hashlib.blake2b(digest_size=32)
+    elif algorithm == "sha256":
+        hasher = hashlib.sha256()
+    elif algorithm == "md5":
+        hasher = hashlib.md5()
+    else:
+        raise ValueError(f"Unsupported hash algorithm: {algorithm}")
+
+    try:
+        with open(file_path, "rb") as f:
+            # Read file in chunks to handle large files efficiently
+            for chunk in iter(lambda: f.read(8192), b""):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except Exception as e:
+        raise RuntimeError(f"Failed to calculate hash for {file_path}: {e}")
+
+
+def ensure_cache(
+    root: str, globs: Optional[List[str]] = None, force: bool = False, save: bool = True, incremental: bool = True, use_content_hash: bool = False
+) -> Dict:
     """
     Load cache if present; otherwise build and optionally save.
+    Supports incremental updates by default.
 
     Args:
         root: Root directory for cache operations
         globs: Glob patterns to use for building cache
-        force: Force rebuild even if cache exists
+        force: Force full rebuild even if cache exists
         save: Whether to save the cache after building
+        incremental: Use incremental updates when possible
+        use_content_hash: Use content hashing for more accurate change detection
 
     Returns:
         Symbol cache dictionary
     """
-    if not force:
-        cache = load_cache(root)
-        if cache is not None:
-            return cache
+    if force:
+        # Force full rebuild
+        cache = build_symbol_inventory(root, globs, store_content_hash=use_content_hash)
+        if save:
+            save_cache(root, cache)
+        return cache
 
-    # Build new cache
-    cache = build_symbol_inventory(root, globs)
+    # Try to load existing cache
+    cache = load_cache(root)
 
-    if save:
-        save_cache(root, cache)
+    if cache is None:
+        # No cache exists, build new one
+        cache = build_symbol_inventory(root, globs, store_content_hash=use_content_hash)
+        if save:
+            save_cache(root, cache)
+        return cache
+
+    if not incremental:
+        # User disabled incremental updates, return existing cache as-is
+        return cache
+
+    # Check for changed files and update incrementally
+    changed_files = detect_changed_files(root, cache, globs, use_content_hash=use_content_hash)
+
+    if changed_files:
+        reporter.step(f"Found {len(changed_files)} changed files, updating cache incrementally…")
+        cache = update_cache_incrementally(root, cache, changed_files, store_content_hash=use_content_hash)
+        if save:
+            save_cache(root, cache)
+    else:
+        reporter.step("No files changed since last indexing")
 
     return cache

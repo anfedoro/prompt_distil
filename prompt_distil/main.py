@@ -208,18 +208,24 @@ def index(
     project_root: str = typer.Option(".", "--project-root", help="Project root directory for symbol cache"),
     search: Optional[str] = typer.Option(None, "--search", "-s", help="Search query for file content"),
     max_results: int = typer.Option(10, "--max", "-m", help="Maximum results to show"),
-    force: bool = typer.Option(False, "--force/--no-force", help="Force rebuild cache"),
+    force: bool = typer.Option(False, "--force/--no-force", help="Force full rebuild of cache"),
     save: bool = typer.Option(True, "--save/--no-save", help="Save cache after building"),
+    incremental: bool = typer.Option(True, "--incremental/--no-incremental", help="Use incremental updates when possible"),
+    files: Optional[List[str]] = typer.Option(None, "--file", "-f", help="Specific files to reindex"),
+    use_content_hash: bool = typer.Option(False, "--hash/--no-hash", help="Use content hashing for more accurate change detection"),
 ):
     """
     Build symbol cache and perform project indexing utilities.
 
     Examples:
-        prompt-distil index --save
-        prompt-distil index --project-root /path/to/app --save
-        prompt-distil index --glob "**/*.py" --glob "**/*.js"
-        prompt-distil index --search "def test_"
-        prompt-distil index --force --save
+        prompt-distil index --save                              # Incremental update
+        prompt-distil index --project-root /path/to/app --save  # Incremental update
+        prompt-distil index --glob "**/*.py" --glob "**/*.js"   # Incremental with custom patterns
+        prompt-distil index --search "def test_"                # Search existing cache
+        prompt-distil index --force --save                      # Force full rebuild
+        prompt-distil index --file src/main.py --file tests/    # Reindex specific files
+        prompt-distil index --no-incremental                    # Use existing cache without updates
+        prompt-distil index --hash --save                       # Use content hashing for accurate detection
     """
     try:
         if search:
@@ -239,21 +245,44 @@ def index(
                 console.print(Panel(result["snippet"], border_style="dim"))
 
         else:
-            # Build/update symbol cache
-            with reporter.initialize(console, "Building/Using cache…"):
-                cache = ensure_cache(project_root, globs=patterns, force=force, save=save)
+            # Handle specific file reindexing
+            if files:
+                from .core.surface import reindex_specific_files
+
+                with reporter.initialize(console, f"Reindexing {len(files)} specific files…"):
+                    cache = reindex_specific_files(project_root, files, save=save, store_content_hash=use_content_hash)
+            else:
+                # Build/update symbol cache
+                hash_info = " (with content hashing)" if use_content_hash else ""
+                operation = (
+                    f"Forcing full rebuild{hash_info}…"
+                    if force
+                    else (f"Building/updating cache incrementally{hash_info}…" if incremental else "Loading existing cache…")
+                )
+                with reporter.initialize(console, operation):
+                    cache = ensure_cache(project_root, globs=patterns, force=force, save=save, incremental=incremental, use_content_hash=use_content_hash)
 
             # Display cache statistics
-            console.print("[bold green]Symbol cache built successfully[/bold green]")
+            if files:
+                console.print(f"[bold green]Successfully reindexed {len(files)} specific files[/bold green]")
+            elif force:
+                console.print("[bold green]Symbol cache rebuilt completely[/bold green]")
+            elif incremental:
+                console.print("[bold green]Symbol cache updated incrementally[/bold green]")
+            else:
+                console.print("[bold green]Using existing symbol cache[/bold green]")
 
             stats_table = Table(title="Cache Statistics")
             stats_table.add_column("Metric", style="cyan")
             stats_table.add_column("Value", style="white")
 
-            stats_table.add_row("Files processed", str(len(cache.get("files", []))))
+            stats_table.add_row("Files indexed", str(len(cache.get("files", []))))
             stats_table.add_row("Symbols found", str(len(cache.get("symbols", []))))
-            stats_table.add_row("Generated at", cache.get("generated_at", "unknown"))
+            stats_table.add_row("Last updated", cache.get("generated_at", "unknown"))
             stats_table.add_row("Cache saved", "Yes" if save else "No")
+            stats_table.add_row("Content hashing", "Enabled" if use_content_hash else "Disabled")
+            if files:
+                stats_table.add_row("Reindexed files", ", ".join(files[:3]) + ("..." if len(files) > 3 else ""))
 
             console.print(stats_table)
 

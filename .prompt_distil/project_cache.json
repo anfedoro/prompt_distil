@@ -1,100 +1,115 @@
 {
   "version": 1,
-  "generated_at": "2025-08-09T22:21:52.192192",
+  "generated_at": "2025-08-12T12:55:40.572596",
   "root": "/Users/anfedoro/repositories/prompt_distil",
   "globs": [
     "**/*.py"
   ],
   "files": [
     {
-      "path": "prompt_distil/core/timing.py",
-      "mtime": 1754734480.0479503,
-      "size": 1141
-    },
-    {
       "path": "prompt_distil/core/llm_map.py",
       "mtime": 1754727532.2787275,
-      "size": 2025
+      "size": 2025,
+      "content_hash": "f8e9a8c42f5b8b74afff98e3467a764e0f9e9d1a7dd0b576d8d9b941b68c7e25"
     },
     {
       "path": "prompt_distil/core/types.py",
       "mtime": 1754473288.934216,
-      "size": 3323
+      "size": 3323,
+      "content_hash": "e46d808c72e48fdd0f2dfcaba56c838ddf49fed216599a03d2f184f83a22be83"
     },
     {
       "path": "prompt_distil/core/progress.py",
       "mtime": 1754684013.6370986,
-      "size": 4956
+      "size": 4956,
+      "content_hash": "5cedec897f7f1b262a1b3a76a1ec6a9fb46ea63df2d7ce543596a954daf12fd9"
     },
     {
       "path": "prompt_distil/core/speech.py",
       "mtime": 1754507739.201989,
-      "size": 6453
+      "size": 6453,
+      "content_hash": "01c95d8f1cf1eb64b279c19c94713325693f600e256cb30fd805b9439a8492d4"
     },
     {
       "path": "prompt_distil/core/reconcile.py",
       "mtime": 1754684013.6373103,
-      "size": 6567
+      "size": 6567,
+      "content_hash": "b3734f3ed7ab1257a0a78b03ded52254250afdbbb2dfd8c0b2629344e8d78360"
     },
     {
       "path": "tests/test_env_and_indexing.py",
-      "mtime": 1754741286.8666441,
-      "size": 7048
+      "mtime": 1754767362.2267473,
+      "size": 7048,
+      "content_hash": "7c3bf1f0553a27ac1ca25b769a758e72ada240dfb7a649053dcde92a3999d0dc"
     },
     {
       "path": "prompt_distil/core/debug_log.py",
-      "mtime": 1754734504.1469378,
-      "size": 7488
+      "mtime": 1754767362.2263741,
+      "size": 7488,
+      "content_hash": "c257f6fb365e9821704f170005a73b18d451c6a3d4972dcd051e5a12076ea774"
     },
     {
       "path": "prompt_distil/core/prompt.py",
       "mtime": 1754476122.5618532,
-      "size": 10076
+      "size": 10076,
+      "content_hash": "5b9de0020e55c42c24047b835240bd8e4d08d684fa2c7240b86a02c27b27db38"
     },
     {
       "path": "prompt_distil/core/config.py",
-      "mtime": 1754741348.3352695,
-      "size": 10321
+      "mtime": 1754767362.2262871,
+      "size": 10321,
+      "content_hash": "85a045bd7148066b6e34a8c93ba2738e6dd4d06f4c3c1a8673f2e2a1d9d72b44"
     },
     {
-      "path": "prompt_distil/core/surface.py",
-      "mtime": 1754733727.5969548,
-      "size": 12429
+      "path": "tests/test_incremental_indexing.py",
+      "mtime": 1754990491.0227194,
+      "size": 12077,
+      "content_hash": "645e1e0a80b5519d5173618530f42bc342b2a177f7fb56bd4df7116e1d64cc2c"
     },
     {
-      "path": "prompt_distil/main.py",
-      "mtime": 1754741257.084284,
-      "size": 16689
+      "path": "tests/test_content_hashing.py",
+      "mtime": 1754992336.4717286,
+      "size": 16941,
+      "content_hash": "e182e808c72d3342a4a63525004e460b104e4c219103b86338a7f1ac9b72a034"
     },
     {
       "path": "prompt_distil/core/distill.py",
-      "mtime": 1754734690.10201,
-      "size": 18008
+      "mtime": 1754767362.2263718,
+      "size": 18008,
+      "content_hash": "5c78d977a85e65c5428789048b71980845c88d18f2bacc75903765f3f2c2a5ef"
+    },
+    {
+      "path": "prompt_distil/main.py",
+      "mtime": 1754992264.6523433,
+      "size": 18936,
+      "content_hash": "31ec5b87d3cec1be3b5c1846c48b8619afece9c14437364cefc7ddd9e9338b2d"
     },
     {
       "path": "prompt_distil/core/llm_handler.py",
-      "mtime": 1754734455.7576888,
-      "size": 20555
+      "mtime": 1754767362.226406,
+      "size": 20555,
+      "content_hash": "a7920a8956f20b29128a78584391c5746b28e8c6401e21057c5d6796fd85f231"
+    },
+    {
+      "path": "prompt_distil/core/surface.py",
+      "mtime": 1754992414.8862393,
+      "size": 21619,
+      "content_hash": "d7d3f1be6973e382356caae9a4cf6834fa59fda2a3bb73b61f0217ebf0390268"
     },
     {
       "path": "tests/test_basic.py",
       "mtime": 1754732336.939678,
-      "size": 69781
+      "size": 69781,
+      "content_hash": "2f4e04f96a290e6da1f93000bf51a7d650ebc226855ffcb008c9adf592995943"
+    },
+    {
+      "path": "prompt_distil/core/timing.py",
+      "mtime": 1754992527.072884,
+      "size": 1324,
+      "content_hash": "256128a875629e357b774f3c4bc1bd9a94025a3a9daebe8f3232c8b5340267f4"
     }
   ],
   "symbols": [
-    {
-      "name": "timer",
-      "kind": "function",
-      "path": "prompt_distil/core/timing.py",
-      "lineno": 20
-    },
-    {
-      "name": "wrapper",
-      "kind": "function",
-      "path": "prompt_distil/core/timing.py",
-      "lineno": 35
-    },
     {
       "name": "LLMMapError",
       "kind": "class",
@@ -576,100 +591,304 @@
       "lineno": 78
     },
     {
-      "name": "SurfaceError",
-      "kind": "class",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 22
-    },
-    {
-      "name": "ProjectSurface",
-      "kind": "class",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 28
-    },
-    {
-      "name": "build_symbol_inventory",
+      "name": "write_file",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 200
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 29
     },
     {
-      "name": "_should_include_file",
+      "name": "read_json",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 286
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 35
     },
     {
-      "name": "_extract_python_symbols",
+      "name": "create_test_project",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 307
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 40
     },
     {
-      "name": "save_cache",
+      "name": "test_detect_changed_files_no_cache",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 330
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 47
     },
     {
-      "name": "load_cache",
+      "name": "test_detect_changed_files_with_modifications",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 339
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 61
     },
     {
-      "name": "ensure_cache",
+      "name": "test_detect_changed_files_no_changes",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 353
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 81
     },
     {
-      "name": "__init__",
+      "name": "test_update_cache_incrementally",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 94
+    },
+    {
+      "name": "test_ensure_cache_incremental_mode",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 122
+    },
+    {
+      "name": "test_ensure_cache_no_incremental_mode",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 148
+    },
+    {
+      "name": "test_reindex_specific_files",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 167
+    },
+    {
+      "name": "test_reindex_specific_files_no_existing_cache",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 194
+    },
+    {
+      "name": "test_cli_incremental_indexing",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 209
+    },
+    {
+      "name": "test_cli_specific_file_reindexing",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 230
+    },
+    {
+      "name": "test_cli_no_incremental_mode",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 246
+    },
+    {
+      "name": "test_build_symbol_inventory_with_target_files",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 262
+    },
+    {
+      "name": "test_cache_persistence_after_incremental_update",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 281
+    },
+    {
+      "name": "test_incremental_update_progress_reporting",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 304
+    },
+    {
+      "name": "test_error_handling_during_incremental_update",
+      "kind": "function",
+      "path": "tests/test_incremental_indexing.py",
+      "lineno": 324
+    },
+    {
+      "name": "write_file",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 30
+    },
+    {
+      "name": "read_json",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
       "lineno": 36
     },
     {
-      "name": "list_files",
+      "name": "create_test_project",
       "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 48
+      "path": "tests/test_content_hashing.py",
+      "lineno": 41
     },
     {
-      "name": "search_project",
-      "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 78
+      "name": "TestFileHashing",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 47
     },
     {
-      "name": "get_project_structure",
-      "kind": "function",
-      "path": "prompt_distil/core/surface.py",
-      "lineno": 149
+      "name": "TestHashBasedChangeDetection",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 120
     },
     {
-      "name": "distill",
-      "kind": "function",
-      "path": "prompt_distil/main.py",
-      "lineno": 38
+      "name": "TestIncrementalUpdateWithHashing",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 202
     },
     {
-      "name": "from_audio",
-      "kind": "function",
-      "path": "prompt_distil/main.py",
-      "lineno": 117
+      "name": "TestCLIHashingIntegration",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 273
     },
     {
-      "name": "index",
-      "kind": "function",
-      "path": "prompt_distil/main.py",
-      "lineno": 206
+      "name": "TestHashingPerformance",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 348
     },
     {
-      "name": "_display_distillation_result",
+      "name": "TestHashConsistency",
+      "kind": "class",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 392
+    },
+    {
+      "name": "test_calculate_file_hash_blake2b",
       "kind": "function",
-      "path": "prompt_distil/main.py",
-      "lineno": 282
+      "path": "tests/test_content_hashing.py",
+      "lineno": 50
+    },
+    {
+      "name": "test_calculate_file_hash_sha256",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 62
+    },
+    {
+      "name": "test_calculate_file_hash_md5",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 73
+    },
+    {
+      "name": "test_calculate_file_hash_different_content",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 82
+    },
+    {
+      "name": "test_calculate_file_hash_invalid_algorithm",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 94
+    },
+    {
+      "name": "test_calculate_file_hash_nonexistent_file",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 102
+    },
+    {
+      "name": "test_calculate_file_hash_large_file",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 109
+    },
+    {
+      "name": "test_detect_changed_files_with_hashing_no_changes",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 123
+    },
+    {
+      "name": "test_detect_changed_files_with_hashing_content_changed",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 140
+    },
+    {
+      "name": "test_detect_changed_files_hash_vs_mtime_accuracy",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 160
+    },
+    {
+      "name": "test_detect_changed_files_hash_fallback_to_mtime",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 184
+    },
+    {
+      "name": "test_update_cache_incrementally_store_hashes",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 205
+    },
+    {
+      "name": "test_ensure_cache_with_content_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 224
+    },
+    {
+      "name": "test_reindex_specific_files_with_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 250
+    },
+    {
+      "name": "test_cli_index_with_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 276
+    },
+    {
+      "name": "test_cli_index_without_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 295
+    },
+    {
+      "name": "test_cli_incremental_update_with_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 313
+    },
+    {
+      "name": "test_cli_specific_file_reindexing_with_hashing",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 332
+    },
+    {
+      "name": "test_hashing_performance_overhead",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 351
+    },
+    {
+      "name": "test_hash_calculation_error_handling",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 375
+    },
+    {
+      "name": "test_hash_consistency_across_runs",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 395
+    },
+    {
+      "name": "test_hash_sensitivity_to_whitespace",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 409
+    },
+    {
+      "name": "test_hash_empty_file",
+      "kind": "function",
+      "path": "tests/test_content_hashing.py",
+      "lineno": 421
     },
     {
       "name": "DistillationError",
@@ -760,6 +979,30 @@
       "kind": "function",
       "path": "prompt_distil/core/distill.py",
       "lineno": 397
+    },
+    {
+      "name": "distill",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 38
+    },
+    {
+      "name": "from_audio",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 117
+    },
+    {
+      "name": "index",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 206
+    },
+    {
+      "name": "_display_distillation_result",
+      "kind": "function",
+      "path": "prompt_distil/main.py",
+      "lineno": 311
     },
     {
       "name": "ReasoningModelError",
@@ -874,6 +1117,102 @@
       "kind": "function",
       "path": "prompt_distil/core/llm_handler.py",
       "lineno": 484
+    },
+    {
+      "name": "SurfaceError",
+      "kind": "class",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 23
+    },
+    {
+      "name": "ProjectSurface",
+      "kind": "class",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 29
+    },
+    {
+      "name": "build_symbol_inventory",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 201
+    },
+    {
+      "name": "_should_include_file",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 313
+    },
+    {
+      "name": "_extract_python_symbols",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 334
+    },
+    {
+      "name": "save_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 357
+    },
+    {
+      "name": "load_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 366
+    },
+    {
+      "name": "detect_changed_files",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 380
+    },
+    {
+      "name": "update_cache_incrementally",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 438
+    },
+    {
+      "name": "reindex_specific_files",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 512
+    },
+    {
+      "name": "_calculate_file_hash",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 548
+    },
+    {
+      "name": "ensure_cache",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 578
+    },
+    {
+      "name": "__init__",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 37
+    },
+    {
+      "name": "list_files",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 49
+    },
+    {
+      "name": "search_project",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 79
+    },
+    {
+      "name": "get_project_structure",
+      "kind": "function",
+      "path": "prompt_distil/core/surface.py",
+      "lineno": 150
     },
     {
       "name": "TestTypes",
@@ -1432,15 +1771,27 @@
       "kind": "function",
       "path": "tests/test_basic.py",
       "lineno": 1327
+    },
+    {
+      "name": "timer",
+      "kind": "function",
+      "path": "prompt_distil/core/timing.py",
+      "lineno": 20
+    },
+    {
+      "name": "test_content_hash_detection",
+      "kind": "function",
+      "path": "prompt_distil/core/timing.py",
+      "lineno": 48
+    },
+    {
+      "name": "wrapper",
+      "kind": "function",
+      "path": "prompt_distil/core/timing.py",
+      "lineno": 35
     }
   ],
   "inverted_index": {
-    "timer": [
-      "prompt_distil/core/timing.py#L20"
-    ],
-    "wrapper": [
-      "prompt_distil/core/timing.py#L35"
-    ],
     "LLMMapError": [
       "prompt_distil/core/llm_map.py#L13"
     ],
@@ -1478,9 +1829,9 @@
       "prompt_distil/core/debug_log.py#L24",
       "prompt_distil/core/prompt.py#L24",
       "prompt_distil/core/config.py#L39",
-      "prompt_distil/core/surface.py#L36",
       "prompt_distil/core/distill.py#L36",
       "prompt_distil/core/llm_handler.py#L224",
+      "prompt_distil/core/surface.py#L37",
       "tests/test_basic.py#L1206",
       "tests/test_basic.py#L1216",
       "tests/test_basic.py#L1226",
@@ -1551,10 +1902,14 @@
       "tests/test_env_and_indexing.py#L18"
     ],
     "write_file": [
-      "tests/test_env_and_indexing.py#L31"
+      "tests/test_env_and_indexing.py#L31",
+      "tests/test_incremental_indexing.py#L29",
+      "tests/test_content_hashing.py#L30"
     ],
     "read_json": [
-      "tests/test_env_and_indexing.py#L37"
+      "tests/test_env_and_indexing.py#L37",
+      "tests/test_incremental_indexing.py#L35",
+      "tests/test_content_hashing.py#L36"
     ],
     "list_contains_path": [
       "tests/test_env_and_indexing.py#L42"
@@ -1676,50 +2031,141 @@
     "max_retries": [
       "prompt_distil/core/config.py#L78"
     ],
-    "SurfaceError": [
-      "prompt_distil/core/surface.py#L22"
+    "create_test_project": [
+      "tests/test_incremental_indexing.py#L40",
+      "tests/test_content_hashing.py#L41"
     ],
-    "ProjectSurface": [
-      "prompt_distil/core/surface.py#L28"
+    "test_detect_changed_files_no_cache": [
+      "tests/test_incremental_indexing.py#L47"
     ],
-    "build_symbol_inventory": [
-      "prompt_distil/core/surface.py#L200"
+    "test_detect_changed_files_with_modifications": [
+      "tests/test_incremental_indexing.py#L61"
     ],
-    "_should_include_file": [
-      "prompt_distil/core/surface.py#L286"
+    "test_detect_changed_files_no_changes": [
+      "tests/test_incremental_indexing.py#L81"
     ],
-    "_extract_python_symbols": [
-      "prompt_distil/core/surface.py#L307"
+    "test_update_cache_incrementally": [
+      "tests/test_incremental_indexing.py#L94"
     ],
-    "save_cache": [
-      "prompt_distil/core/surface.py#L330"
+    "test_ensure_cache_incremental_mode": [
+      "tests/test_incremental_indexing.py#L122"
     ],
-    "load_cache": [
-      "prompt_distil/core/surface.py#L339"
+    "test_ensure_cache_no_incremental_mode": [
+      "tests/test_incremental_indexing.py#L148"
     ],
-    "ensure_cache": [
-      "prompt_distil/core/surface.py#L353"
+    "test_reindex_specific_files": [
+      "tests/test_incremental_indexing.py#L167"
     ],
-    "list_files": [
-      "prompt_distil/core/surface.py#L48"
+    "test_reindex_specific_files_no_existing_cache": [
+      "tests/test_incremental_indexing.py#L194"
     ],
-    "search_project": [
-      "prompt_distil/core/surface.py#L78"
+    "test_cli_incremental_indexing": [
+      "tests/test_incremental_indexing.py#L209"
     ],
-    "get_project_structure": [
-      "prompt_distil/core/surface.py#L149"
+    "test_cli_specific_file_reindexing": [
+      "tests/test_incremental_indexing.py#L230"
     ],
-    "distill": [
-      "prompt_distil/main.py#L38"
+    "test_cli_no_incremental_mode": [
+      "tests/test_incremental_indexing.py#L246"
     ],
-    "from_audio": [
-      "prompt_distil/main.py#L117"
+    "test_build_symbol_inventory_with_target_files": [
+      "tests/test_incremental_indexing.py#L262"
     ],
-    "index": [
-      "prompt_distil/main.py#L206"
+    "test_cache_persistence_after_incremental_update": [
+      "tests/test_incremental_indexing.py#L281"
     ],
-    "_display_distillation_result": [
-      "prompt_distil/main.py#L282"
+    "test_incremental_update_progress_reporting": [
+      "tests/test_incremental_indexing.py#L304"
+    ],
+    "test_error_handling_during_incremental_update": [
+      "tests/test_incremental_indexing.py#L324"
+    ],
+    "TestFileHashing": [
+      "tests/test_content_hashing.py#L47"
+    ],
+    "TestHashBasedChangeDetection": [
+      "tests/test_content_hashing.py#L120"
+    ],
+    "TestIncrementalUpdateWithHashing": [
+      "tests/test_content_hashing.py#L202"
+    ],
+    "TestCLIHashingIntegration": [
+      "tests/test_content_hashing.py#L273"
+    ],
+    "TestHashingPerformance": [
+      "tests/test_content_hashing.py#L348"
+    ],
+    "TestHashConsistency": [
+      "tests/test_content_hashing.py#L392"
+    ],
+    "test_calculate_file_hash_blake2b": [
+      "tests/test_content_hashing.py#L50"
+    ],
+    "test_calculate_file_hash_sha256": [
+      "tests/test_content_hashing.py#L62"
+    ],
+    "test_calculate_file_hash_md5": [
+      "tests/test_content_hashing.py#L73"
+    ],
+    "test_calculate_file_hash_different_content": [
+      "tests/test_content_hashing.py#L82"
+    ],
+    "test_calculate_file_hash_invalid_algorithm": [
+      "tests/test_content_hashing.py#L94"
+    ],
+    "test_calculate_file_hash_nonexistent_file": [
+      "tests/test_content_hashing.py#L102"
+    ],
+    "test_calculate_file_hash_large_file": [
+      "tests/test_content_hashing.py#L109"
+    ],
+    "test_detect_changed_files_with_hashing_no_changes": [
+      "tests/test_content_hashing.py#L123"
+    ],
+    "test_detect_changed_files_with_hashing_content_changed": [
+      "tests/test_content_hashing.py#L140"
+    ],
+    "test_detect_changed_files_hash_vs_mtime_accuracy": [
+      "tests/test_content_hashing.py#L160"
+    ],
+    "test_detect_changed_files_hash_fallback_to_mtime": [
+      "tests/test_content_hashing.py#L184"
+    ],
+    "test_update_cache_incrementally_store_hashes": [
+      "tests/test_content_hashing.py#L205"
+    ],
+    "test_ensure_cache_with_content_hashing": [
+      "tests/test_content_hashing.py#L224"
+    ],
+    "test_reindex_specific_files_with_hashing": [
+      "tests/test_content_hashing.py#L250"
+    ],
+    "test_cli_index_with_hashing": [
+      "tests/test_content_hashing.py#L276"
+    ],
+    "test_cli_index_without_hashing": [
+      "tests/test_content_hashing.py#L295"
+    ],
+    "test_cli_incremental_update_with_hashing": [
+      "tests/test_content_hashing.py#L313"
+    ],
+    "test_cli_specific_file_reindexing_with_hashing": [
+      "tests/test_content_hashing.py#L332"
+    ],
+    "test_hashing_performance_overhead": [
+      "tests/test_content_hashing.py#L351"
+    ],
+    "test_hash_calculation_error_handling": [
+      "tests/test_content_hashing.py#L375"
+    ],
+    "test_hash_consistency_across_runs": [
+      "tests/test_content_hashing.py#L395"
+    ],
+    "test_hash_sensitivity_to_whitespace": [
+      "tests/test_content_hashing.py#L409"
+    ],
+    "test_hash_empty_file": [
+      "tests/test_content_hashing.py#L421"
     ],
     "DistillationError": [
       "prompt_distil/core/distill.py#L20"
@@ -1758,6 +2204,18 @@
     ],
     "_clean_backticks_for_distillation": [
       "prompt_distil/core/distill.py#L397"
+    ],
+    "distill": [
+      "prompt_distil/main.py#L38"
+    ],
+    "from_audio": [
+      "prompt_distil/main.py#L117"
+    ],
+    "index": [
+      "prompt_distil/main.py#L206"
+    ],
+    "_display_distillation_result": [
+      "prompt_distil/main.py#L311"
     ],
     "ReasoningModelError": [
       "prompt_distil/core/llm_handler.py#L19"
@@ -1812,6 +2270,51 @@
     ],
     "_format_compact_hints": [
       "prompt_distil/core/llm_handler.py#L484"
+    ],
+    "SurfaceError": [
+      "prompt_distil/core/surface.py#L23"
+    ],
+    "ProjectSurface": [
+      "prompt_distil/core/surface.py#L29"
+    ],
+    "build_symbol_inventory": [
+      "prompt_distil/core/surface.py#L201"
+    ],
+    "_should_include_file": [
+      "prompt_distil/core/surface.py#L313"
+    ],
+    "_extract_python_symbols": [
+      "prompt_distil/core/surface.py#L334"
+    ],
+    "save_cache": [
+      "prompt_distil/core/surface.py#L357"
+    ],
+    "load_cache": [
+      "prompt_distil/core/surface.py#L366"
+    ],
+    "detect_changed_files": [
+      "prompt_distil/core/surface.py#L380"
+    ],
+    "update_cache_incrementally": [
+      "prompt_distil/core/surface.py#L438"
+    ],
+    "reindex_specific_files": [
+      "prompt_distil/core/surface.py#L512"
+    ],
+    "_calculate_file_hash": [
+      "prompt_distil/core/surface.py#L548"
+    ],
+    "ensure_cache": [
+      "prompt_distil/core/surface.py#L578"
+    ],
+    "list_files": [
+      "prompt_distil/core/surface.py#L49"
+    ],
+    "search_project": [
+      "prompt_distil/core/surface.py#L79"
+    ],
+    "get_project_structure": [
+      "prompt_distil/core/surface.py#L150"
     ],
     "TestTypes": [
       "tests/test_basic.py#L17"
@@ -2079,6 +2582,15 @@
     ],
     "MockReasoningError": [
       "tests/test_basic.py#L1326"
+    ],
+    "timer": [
+      "prompt_distil/core/timing.py#L20"
+    ],
+    "test_content_hash_detection": [
+      "prompt_distil/core/timing.py#L48"
+    ],
+    "wrapper": [
+      "prompt_distil/core/timing.py#L35"
     ]
   }
 }
