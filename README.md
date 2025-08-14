@@ -49,6 +49,14 @@ uv add openai pydantic>=2 typer>=0.12 python-dotenv rich
 uv add --dev pytest pytest-asyncio
 ```
 
+Alternatively, for global use as a tool
+
+```bash
+# Install as a tool with UV
+uv tool install <repository-url>
+```
+
+
 ## Environment Variables
 
 Prompt Distiller supports several environment variables for customizing LLM behavior:
